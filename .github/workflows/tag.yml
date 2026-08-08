@@ -1,0 +1,43 @@
+name: Tag for Release
+
+on:
+    pull_request:
+        types:
+            - closed
+        branches:
+            - main
+
+jobs:
+    tag:
+        if: github.event.pull_request.merged == true
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+
+            - name: Use Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Resolve version from package.json
+              id: version
+              run: |
+                  VERSION="$(node -p "require('./package.json').version")"
+                  echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+
+            - name: Create and push tag when missing
+              env:
+                  VERSION: ${{ steps.version.outputs.value }}
+              run: |
+                  if git rev-parse --verify "refs/tags/$VERSION" >/dev/null 2>&1; then
+                    echo "Tag $VERSION already exists; skipping."
+                    exit 0
+                  fi
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git tag "$VERSION"
+                  git push origin "$VERSION"

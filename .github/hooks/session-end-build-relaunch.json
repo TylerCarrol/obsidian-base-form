@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-relaunch-demo-vault.ps1",
+        "timeout": 600
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+	"id": "{{RENAME}}",
+	"name": "{{RENAME}}",
+	"version": "0.0.1",
+	"minAppVersion": "1.13.0",
+	"description": "TBD",
+	"author": "Tyler Carrol",
+	"authorUrl": "https://github.com/TylerCarrol",
+	"isDesktopOnly": false
+}

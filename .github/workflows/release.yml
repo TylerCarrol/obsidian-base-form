@@ -1,0 +1,112 @@
+name: Release Obsidian plugin
+
+on:
+    push:
+        tags:
+            - '*'
+    workflow_run:
+        workflows:
+            - Tag for Release
+        types:
+            - completed
+
+jobs:
+    build:
+        if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            id-token: write
+            attestations: write
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+                  fetch-depth: 0
+
+            - name: Use Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: 'npm'
+
+            - name: Build plugin
+              run: |
+                  npm ci
+                  npm run build
+
+            - name: Check for optional styles
+              id: styles
+              run: |
+                  [ -f styles.css ] && echo "exists=true" >> "$GITHUB_OUTPUT" || echo "exists=false" >> "$GITHUB_OUTPUT"
+
+            - name: Resolve release version
+              id: release-version
+              run: |
+                  if [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
+                    echo "value=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "value=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Attest build provenance
+              uses: actions/attest@v4
+              with:
+                  subject-path: |
+                      main.js
+                      ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
+
+            - name: Build release notes from changelog
+              env:
+                  RELEASE_VERSION: ${{ steps.release-version.outputs.value }}
+              run: |
+                  awk -v version="$RELEASE_VERSION" '
+                    $0 ~ "^## \\[" version "\\]" { in_section = 1; next }
+                    /^## \[/ { if (in_section) exit }
+                    in_section { print }
+                  ' CHANGELOG.md > release-notes.md
+
+                  if [ ! -s release-notes.md ]; then
+                    awk '
+                      /^## \[Unreleased\]/ { in_section = 1; next }
+                      /^## \[/ { if (in_section) exit }
+                      in_section { print }
+                    ' CHANGELOG.md > release-notes.md
+                  fi
+
+                  # Trim leading/trailing blank lines for cleaner release descriptions.
+                  awk '
+                    {
+                      lines[NR] = $0
+                      if ($0 ~ /[^[:space:]]/) {
+                        if (first == 0) first = NR
+                        last = NR
+                      }
+                    }
+                    END {
+                      if (first == 0) exit
+                      for (i = first; i <= last; i++) print lines[i]
+                    }
+                  ' release-notes.md > release-notes.trimmed.md
+                  mv release-notes.trimmed.md release-notes.md
+
+                  if [ ! -s release-notes.md ]; then
+                    echo "No changelog entries found for $RELEASE_VERSION." > release-notes.md
+                  fi
+
+            - name: Create release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  RELEASE_VERSION: ${{ steps.release-version.outputs.value }}
+              run: |
+                  tag="$RELEASE_VERSION"
+
+                  if gh release view "$tag" >/dev/null 2>&1; then
+                    echo "Release $tag already exists; skipping."
+                    exit 0
+                  fi
+
+                  gh release create "$tag" \
+                    --title="$tag" \
+                    --notes-file release-notes.md \
+                    main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}

@@ -1,0 +1,35 @@
+{
+	"name": "{{RENAME}}",
+	"version": "0.0.1",
+	"description": "{{RENAME}} plugin for Obsidian (https://obsidian.md)",
+	"main": "main.js",
+	"type": "module",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"build:demo-vault": "npm run build && powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/build-to-demo-vault.ps1",
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"lint": "eslint .",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"keywords": [],
+	"license": "MIT",
+	"devDependencies": {
+		"@eslint/js": "^9.39.4",
+		"@types/node": "^22.15.17",
+		"esbuild": "0.28.1",
+		"eslint": "^9.39.4",
+		"eslint-plugin-obsidianmd": "^0.4.0",
+		"globals": "^17.6.0",
+		"jiti": "^2.6.1",
+		"jsdom": "^30.0.1",
+		"obsidian": "latest",
+		"typescript": "^5.8.3",
+		"typescript-eslint": "^8.59.1",
+		"vitest": "^4.1.10"
+	},
+	"allowScripts": {
+		"esbuild@0.25.5": true
+	}
+}
