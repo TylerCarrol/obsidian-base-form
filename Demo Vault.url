@@ -2,5 +2,5 @@
 Prop3=19,0
 [InternetShortcut]
 IDList=
-URL=obsidian://open/?vault={{RENAME}}-demo-vault
+URL=obsidian://open/?vault=base-form-demo-vault
 HotKey=0

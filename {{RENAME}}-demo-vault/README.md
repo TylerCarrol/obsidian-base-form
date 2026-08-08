@@ -1,1 +1,0 @@
-# {{RENAME}}: Test Vault

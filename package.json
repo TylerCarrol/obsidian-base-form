@@ -1,7 +1,7 @@
 {
-	"name": "{{RENAME}}",
+	"name": "base-form",
 	"version": "0.0.1",
-	"description": "{{RENAME}} plugin for Obsidian (https://obsidian.md)",
+	"description": "BaseForm plugin for Obsidian (https://obsidian.md)",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {

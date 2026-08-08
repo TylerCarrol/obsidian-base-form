@@ -1,9 +1,9 @@
 {
-	"id": "{{RENAME}}",
-	"name": "{{RENAME}}",
+	"id": "base-form",
+	"name": "BaseForm",
 	"version": "0.0.1",
 	"minAppVersion": "1.13.0",
-	"description": "TBD",
+	"description": "Create editable form views for Obsidian Bases.",
 	"author": "Tyler Carrol",
 	"authorUrl": "https://github.com/TylerCarrol",
 	"isDesktopOnly": false
