@@ -2,6 +2,12 @@
   "types": {
     "aliases": "aliases",
     "cssclasses": "multitext",
-    "tags": "tags"
+    "tags": "tags",
+    "full-name": "text",
+    "interests": "multitext",
+    "score": "number",
+    "featured": "checkbox",
+    "review-date": "date",
+    "appointment": "datetime"
   }
 }

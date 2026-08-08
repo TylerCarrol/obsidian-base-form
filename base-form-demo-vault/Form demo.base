@@ -1,0 +1,83 @@
+filters:
+  and:
+    - note.baseform == true
+formulas:
+  Test: '"Test: " + score + " - " + interests'
+  Link: link(file, file)
+properties:
+  note.full-name:
+    displayName: Full name
+  note.interests:
+    displayName: Interests
+  note.score:
+    displayName: Score
+  note.featured:
+    displayName: Featured
+  note.review-date:
+    displayName: Review date
+  note.appointment:
+    displayName: Appointment
+views:
+  - type: base-form
+    name: Form
+    order:
+      - full-name
+      - interests
+      - score
+      - featured
+      - review-date
+      - appointment
+    itemSpacing: 8
+    formWidth: 80
+    showOnlyEmptyInputs: false
+  - type: base-form
+    name: Empty Properties
+    order:
+      - full-name
+      - interests
+      - score
+      - featured
+      - review-date
+      - appointment
+    itemSpacing: 8
+    formWidth: 80
+    showOnlyEmptyInputs: true
+  - type: base-form
+    name: This - Form
+    filters:
+      and:
+        - file == this.file
+    order:
+      - full-name
+      - interests
+      - score
+      - formula.Test
+      - featured
+      - review-date
+      - appointment
+    showFileName: false
+    itemSpacing: 3
+    formWidth: 80
+  - type: cards
+    name: Cards
+    order:
+      - full-name
+      - interests
+      - score
+      - featured
+      - review-date
+      - appointment
+      - formula.Link
+    itemSpacing: 8
+    formWidth: 80
+    showOnlyEmptyInputs: true
+  - type: table
+    name: Table
+    order:
+      - file.name
+      - full-name
+      - interests
+      - score
+      - featured
+      - review-date
+      - appointment

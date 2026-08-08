@@ -34,7 +34,11 @@ for %%I in (
 
 :launch
 if defined CODE_EXE (
-    start "" "%CODE_EXE%" -n "%REPO_DIR%"
+    powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "Start-Process -FilePath $env:CODE_EXE -WorkingDirectory $env:REPO_DIR -ArgumentList @('-n', $env:REPO_DIR)"
+    if errorlevel 1 (
+        echo Failed to launch VS Code from "%CODE_EXE%".
+        exit /b 1
+    )
     exit /b 0
 )
 
