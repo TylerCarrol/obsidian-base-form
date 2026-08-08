@@ -31,7 +31,7 @@ views:
     formWidth: 80
     showOnlyEmptyInputs: false
   - type: base-form
-    name: Empty Properties
+    name: Empty Properties Only
     order:
       - full-name
       - interests

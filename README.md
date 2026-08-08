@@ -1,16 +1,24 @@
 # BaseForm
 
-BaseForm adds an editable **Form** view to [Obsidian Bases](https://help.obsidian.md/bases). It displays each note returned by a base as a card with its selected properties stacked vertically.
+BaseForm adds an editable **Form** view to [Obsidian Bases](https://help.obsidian.md/bases). Each note is displayed as an interactable form, with the selected properties stacked vertically.
 
 ## Features
 
 - Edit text, list, number, checkbox, date, and date-and-time properties.
-- Save changes directly to note frontmatter through Obsidian's file API.
-- Respect the visible property order and display names configured in the Bases toolbar.
-- Display every matching note as a separate form.
-- Show or hide file names, show only empty property inputs, and adjust item spacing for each Form view.
+- Save changes directly to note frontmatter with Obsidian's file API.
+- Use the property order and display names set in the Bases toolbar.
+- Show each matching note as its own form.
+- Control file name visibility, empty-only fields, and item spacing for each Form view.
 - Show file and formula properties as read-only values.
-- Work on desktop and mobile without external services.
+- Run locally on desktop and mobile, with no external services.
+
+## Examples
+
+![All Forms](./images/form-example-1-all-forms.png)
+
+![Empty Properties Only](./images/form-example-2-empty-properties-only.png)
+
+![This Form Only](./images/form-example-3-this-form-only.png)
 
 ## Requirements
 
@@ -21,20 +29,20 @@ BaseForm adds an editable **Form** view to [Obsidian Bases](https://help.obsidia
 
 1. Install and enable BaseForm.
 2. Open or create a `.base` file.
-3. Add a view and select **Form**.
+3. Add a view, then select **Form**.
 4. Use **Properties** in the Bases toolbar to choose and reorder the form fields.
 5. Use the view options to show or hide file names, show only empty property inputs, and adjust item spacing.
 6. Edit a field, then move focus away from it to save the value.
 
-List fields use one item per line. Clearing a number, date, or date-and-time field keeps the property with an empty value. File and formula properties remain visible but cannot be edited.
+List fields use one item per line. If you clear a number, date, or date-and-time field, BaseForm keeps the property with an empty value. File and formula properties stay visible, but you cannot edit them.
 
-BaseForm uses Obsidian's assigned property types when available. If an untyped property is empty in every matching note, it initially falls back to a text field.
+BaseForm uses Obsidian's assigned property types when they are available. If an untyped property is empty in every matching note, BaseForm first uses a text field.
 
-Values that cannot be safely represented by a supported input, including nested data, non-text lists, and date-and-time values with timezone suffixes, are shown read-only to prevent accidental data loss.
+BaseForm shows some values as read-only to prevent accidental data loss. This includes nested data, non-text lists, and date-and-time values with timezone suffixes.
 
 ## Demo vault
 
-The repository includes `base-form-demo-vault`, with a configured base and sample notes covering every supported property type. See [`base-form-demo-vault/README.md`](base-form-demo-vault/README.md) for the walkthrough.
+The repository includes `base-form-demo-vault`. It contains a configured base and sample notes for every supported property type. See [`base-form-demo-vault/README.md`](base-form-demo-vault/README.md) for the walkthrough.
 
 ## Install for development
 
@@ -52,7 +60,7 @@ The repository includes `base-form-demo-vault`, with a configured base and sampl
    ```
 4. Enable **Settings → Community plugins → BaseForm**.
 
-For watch mode, run `npm run dev`. On Windows, `.\scripts\build-to-demo-vault.ps1` builds and installs the plugin into the included demo vault.
+For watch mode, run `npm run dev`. On Windows, `./scripts/build-to-demo-vault.ps1` builds the plugin and installs it into the included demo vault.
 
 ## Validate changes
 
@@ -64,4 +72,4 @@ npm run build
 
 ## Privacy
 
-BaseForm works locally. It does not make network requests, collect analytics, or send vault data anywhere.
+BaseForm runs locally. It does not make network requests, collect analytics, or send vault data anywhere.
