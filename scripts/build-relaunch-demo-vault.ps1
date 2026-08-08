@@ -2,39 +2,6 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
-function Get-VaultNameFromShortcut {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$ShortcutPath
-    )
-
-    if (-not (Test-Path -Path $ShortcutPath)) {
-        throw "Vault shortcut file not found: $ShortcutPath"
-    }
-
-    $urlLine = Get-Content -Path $ShortcutPath | Where-Object { $_ -like 'URL=*' } | Select-Object -First 1
-    if (-not $urlLine) {
-        throw "No URL entry found in shortcut file: $ShortcutPath"
-    }
-
-    $rawUrl = $urlLine.Substring(4)
-    $uri = [Uri]$rawUrl
-
-    $vaultParam = ($uri.Query.TrimStart('?') -split '&' | Where-Object { $_ -like 'vault=*' } | Select-Object -First 1)
-    $vaultName = if ($vaultParam) {
-        [Uri]::UnescapeDataString(($vaultParam -replace '^vault=', ''))
-    }
-    else {
-        $null
-    }
-
-    if ([string]::IsNullOrWhiteSpace($vaultName)) {
-        throw "Could not parse vault name from URL: $rawUrl"
-    }
-
-    return $vaultName
-}
-
 function Ensure-User32Interop {
     if (-not ('Win32.NativeMethods' -as [type])) {
         Add-Type -TypeDefinition @"
@@ -160,6 +127,7 @@ function Close-ObsidianVaultWindows {
 
 $repoRoot = Split-Path -Path $PSScriptRoot -Parent
 $shortcutPath = Join-Path -Path $repoRoot -ChildPath 'Demo Vault.url'
+$vaultNameScript = Join-Path -Path $PSScriptRoot -ChildPath 'get-vault-name-from-shortcut.ps1'
 
 Write-Host 'Running build-to-demo-vault script...' -ForegroundColor Cyan
 & (Join-Path -Path $PSScriptRoot -ChildPath 'build-to-demo-vault.ps1')
@@ -167,7 +135,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "build-to-demo-vault.ps1 failed with exit code $LASTEXITCODE"
 }
 
-$vaultName = Get-VaultNameFromShortcut -ShortcutPath $shortcutPath
+$vaultName = & $vaultNameScript -ShortcutPath $shortcutPath
 Close-ObsidianVaultWindows -VaultName $vaultName
 
 Write-Host "Relaunching vault '$vaultName'..." -ForegroundColor Cyan
