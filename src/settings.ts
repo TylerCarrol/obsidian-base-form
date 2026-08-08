@@ -1,15 +1,15 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, SettingDefinitionItem } from 'obsidian';
 import MyPlugin from './main';
 
-export interface MyPluginSettings {
+export interface BaseFormSettings {
 	mySetting: string;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
+export const DEFAULT_SETTINGS: BaseFormSettings = {
 	mySetting: 'default',
 };
 
-export class SampleSettingTab extends PluginSettingTab {
+export class BaseFormSettingTab extends PluginSettingTab {
 	plugin: MyPlugin;
 
 	constructor(app: App, plugin: MyPlugin) {
@@ -17,22 +17,17 @@ export class SampleSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
-		const { containerEl } = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Settings #1')
-			.setDesc("It's a secret")
-			.addText((text) =>
-				text
-					.setPlaceholder('Enter your secret')
-					.setValue(this.plugin.settings.mySetting)
-					.onChange(async (value) => {
-						this.plugin.settings.mySetting = value;
-						await this.plugin.saveSettings();
-					}),
-			);
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				name: 'Settings #1',
+				desc: "It's a secret",
+				control: {
+					type: 'text',
+					key: 'mySetting',
+					placeholder: 'Enter your secret',
+				},
+			},
+		];
 	}
 }
