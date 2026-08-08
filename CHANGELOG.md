@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix CSS lint warnings by replacing `!important` usage and `:has()` in list-chip/list-control styles.
+
 ## [0.1.0] - 2026-08-08
 
 ### Added

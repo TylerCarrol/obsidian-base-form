@@ -3,7 +3,7 @@
 	"name": "BaseForm",
 	"version": "0.1.0",
 	"minAppVersion": "1.13.0",
-	"description": "Create editable form views for Obsidian Bases.",
+	"description": "Create editable form views for Bases.",
 	"author": "Tyler Carrol",
 	"authorUrl": "https://github.com/TylerCarrol",
 	"isDesktopOnly": false

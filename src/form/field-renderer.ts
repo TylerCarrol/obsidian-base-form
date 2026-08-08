@@ -145,6 +145,10 @@ function createListControl(
 	fieldEl: HTMLElement,
 	value: string,
 ): CreatedControl {
+	const hiddenValue = fieldEl.createEl('input', {
+		cls: 'base-form-control base-form-list-value',
+		attr: { type: 'hidden' },
+	});
 	const wrapper = fieldEl.createDiv({ cls: 'base-form-list-control' });
 	const chipsEl = wrapper.createDiv({ cls: 'base-form-list-items' });
 	const input = wrapper.createEl('input', {
@@ -154,11 +158,6 @@ function createListControl(
 			autocomplete: 'off',
 			placeholder: 'Add item',
 		},
-	});
-
-	const hiddenValue = fieldEl.createEl('input', {
-		cls: 'base-form-control base-form-list-value',
-		attr: { type: 'hidden' },
 	});
 
 	const items = value === '' ? [] : value.split(/\r?\n/);

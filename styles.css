@@ -132,7 +132,7 @@ textarea.base-form-control {
 	color: var(--text-normal);
 }
 
-.base-form-list-chip-remove {
+.base-form-list-chip .base-form-list-chip-remove {
 	position: relative;
 	display: inline-block;
 	align-self: center;
@@ -140,10 +140,10 @@ textarea.base-form-control {
 	height: 0.7rem;
 	padding: 0;
 	margin-left: 0.08rem;
-	border: 0 !important;
+	border: 0;
 	border-radius: 0;
-	background: transparent !important;
-	box-shadow: none !important;
+	background: transparent;
+	box-shadow: none;
 	appearance: none;
 	-webkit-appearance: none;
 	color: var(--text-faint);
@@ -170,20 +170,20 @@ textarea.base-form-control {
 	transform: translate(-50%, -50%) rotate(-45deg);
 }
 
-.base-form-list-chip-remove:hover {
-	background: var(--background-modifier-hover) !important;
+.base-form-list-chip .base-form-list-chip-remove:hover {
+	background: var(--background-modifier-hover);
 	border-radius: var(--radius-s);
 	color: var(--text-muted);
-	box-shadow: none !important;
+	box-shadow: none;
 }
 
-.base-form-list-chip-remove:focus,
-.base-form-list-chip-remove:focus-visible,
-.base-form-list-chip-remove:active {
-	background: var(--background-modifier-hover) !important;
+.base-form-list-chip .base-form-list-chip-remove:focus,
+.base-form-list-chip .base-form-list-chip-remove:focus-visible,
+.base-form-list-chip .base-form-list-chip-remove:active {
+	background: var(--background-modifier-hover);
 	border-radius: var(--radius-s);
 	color: var(--text-muted);
-	box-shadow: none !important;
+	box-shadow: none;
 	outline: none;
 }
 
@@ -228,7 +228,7 @@ input.base-form-control[type='checkbox'] {
 	color: var(--text-error);
 }
 
-.base-form-list-control:has(.base-form-list-input[aria-invalid='true']) {
+.base-form-list-value[aria-invalid='true'] + .base-form-list-control {
 	border-color: var(--text-error);
 	box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-error) 45%, transparent);
 }
