@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-09
+
 ### Added
 
 - Autocomplete in text and list fields
@@ -48,7 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add per-view file name visibility, empty-input filtering, item spacing, and form width options.
 - Add a demo base and sample notes covering each supported property type.
 
-[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.5.0...HEAD
+
+[0.5.0]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.4.0...v0.5.0
 
 [0.4.0]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.3.0...v0.4.0
 
