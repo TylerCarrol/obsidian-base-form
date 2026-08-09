@@ -55,13 +55,13 @@ beforeAll(() => {
 
 	if (prototype.createDiv === undefined) {
 		prototype.createDiv = function createDiv(this: HTMLElement, options) {
-			return this.createEl?.('div', options) as HTMLElement;
+			return this.createEl?.('div', options);
 		};
 	}
 
 	if (prototype.createSpan === undefined) {
 		prototype.createSpan = function createSpan(this: HTMLElement, options) {
-			return this.createEl?.('span', options) as HTMLElement;
+			return this.createEl?.('span', options);
 		};
 	}
 
@@ -108,9 +108,10 @@ describe('read-only link rendering', () => {
 	});
 
 	it('renders markdown links with external URLs as clickable links', () => {
+		const getFirstLinkpathDest = vi.fn();
 		const app = {
 			metadataCache: {
-				getFirstLinkpathDest: vi.fn(),
+				getFirstLinkpathDest,
 			},
 		} as never;
 		const fieldEl = document.createElement('div');
@@ -127,7 +128,7 @@ describe('read-only link rendering', () => {
 		expect(link).not.toBeNull();
 		expect(link?.href).toBe('https://example.com/docs');
 		expect(link?.dataset.filePath).toBeUndefined();
-		expect(app.metadataCache.getFirstLinkpathDest).not.toHaveBeenCalled();
+		expect(getFirstLinkpathDest).not.toHaveBeenCalled();
 	});
 });
 
