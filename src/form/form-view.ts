@@ -27,7 +27,7 @@ import type { FormControl } from './field-renderer';
 import {
 	getRawValue,
 	isEditablePropertyValue,
-	isEmptyPropertyValue,
+	shouldRenderPropertyInput,
 	resolveFieldTypes,
 } from './property-types';
 import { getFormViewSettings } from './view-options';
@@ -116,6 +116,7 @@ export class BaseFormView extends BasesView {
 				fieldTypes,
 				settings.showFileName,
 				settings.showOnlyEmptyInputs,
+				settings.showOnlyExistingInputs,
 			);
 		});
 
@@ -135,6 +136,7 @@ export class BaseFormView extends BasesView {
 		fieldTypes: Map<BasesPropertyId, FormFieldType>,
 		showFileName: boolean,
 		showOnlyEmptyInputs: boolean,
+		showOnlyExistingInputs: boolean,
 	): void {
 		const cardEl = parentEl.createEl('article', { cls: 'base-form-entry' });
 		if (showFileName) {
@@ -173,6 +175,7 @@ export class BaseFormView extends BasesView {
 				propertyId,
 				fieldTypes.get(propertyId) ?? 'text',
 				showOnlyEmptyInputs,
+				showOnlyExistingInputs,
 			);
 		});
 	}
@@ -185,6 +188,7 @@ export class BaseFormView extends BasesView {
 		propertyId: BasesPropertyId,
 		fieldType: FormFieldType,
 		showOnlyEmptyInputs: boolean,
+		showOnlyExistingInputs: boolean,
 	): void {
 		const property = parsePropertyId(propertyId);
 		const displayName = this.config.getDisplayName(propertyId);
@@ -195,8 +199,10 @@ export class BaseFormView extends BasesView {
 				: undefined;
 
 		if (
-			showOnlyEmptyInputs &&
-			!isEmptyPropertyValue(fieldType, rawValue, value)
+			!shouldRenderPropertyInput(fieldType, rawValue, value, {
+				showOnlyEmptyInputs,
+				showOnlyExistingInputs,
+			})
 		) {
 			return;
 		}

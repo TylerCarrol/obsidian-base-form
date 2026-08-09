@@ -8,7 +8,7 @@ BaseForm adds an editable **Form** view to [Obsidian Bases](https://help.obsidia
 - Save changes directly to note frontmatter with Obsidian's file API.
 - Use the property order and display names set in the Bases toolbar.
 - Show each matching note as its own form.
-- Control file name visibility, empty-only fields, and item spacing for each Form view.
+- Control file name visibility, empty-only fields, existing-only fields, and item spacing for each Form view.
 - Show file and formula properties as read-only values.
 - Run locally on desktop and mobile, with no external services.
 
@@ -31,7 +31,7 @@ BaseForm adds an editable **Form** view to [Obsidian Bases](https://help.obsidia
 2. Open or create a `.base` file.
 3. Add a view, then select **Form**.
 4. Use **Properties** in the Bases toolbar to choose and reorder the form fields.
-5. Use the view options to show or hide file names, show only empty property inputs, and adjust item spacing.
+5. Use the view options to show or hide file names, show only empty property inputs, show only existing property inputs, and adjust item spacing.
 6. Edit a field, then move focus away from it to save the value.
 
 List fields use one item per line. If you clear a number, date, or date-and-time field, BaseForm keeps the property with an empty value. File and formula properties stay visible, but you cannot edit them.

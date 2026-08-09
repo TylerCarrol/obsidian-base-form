@@ -20,12 +20,14 @@ describe('form view settings', () => {
 			readSettings({
 				showFileName: false,
 				showOnlyEmptyInputs: true,
+				showOnlyExistingInputs: true,
 				itemSpacing: 12,
 				formWidth: 40,
 			}),
 		).toEqual({
 			showFileName: false,
 			showOnlyEmptyInputs: true,
+			showOnlyExistingInputs: true,
 			itemSpacing: 12,
 			formWidth: 40,
 		});
@@ -46,6 +48,7 @@ describe('form view settings', () => {
 			readSettings({
 				showFileName: 'false',
 				showOnlyEmptyInputs: 'true',
+				showOnlyExistingInputs: 'true',
 				itemSpacing: '12',
 			}),
 		).toEqual(DEFAULT_FORM_VIEW_SETTINGS);

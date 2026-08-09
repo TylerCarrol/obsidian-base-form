@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add a Form view option to show only existing property inputs, with support for combining it with the empty-input filter.
+
 ## [0.1.1] - 2026-08-08
 
 ### Fixed

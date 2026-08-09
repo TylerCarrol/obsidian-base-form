@@ -138,6 +138,29 @@ export function isEmptyPropertyValue(
 	return value.toString() === '';
 }
 
+export function shouldRenderPropertyInput(
+	type: FormFieldType,
+	rawValue: unknown,
+	value: Value | null,
+	options: {
+		showOnlyEmptyInputs: boolean;
+		showOnlyExistingInputs: boolean;
+	},
+): boolean {
+	if (options.showOnlyExistingInputs && rawValue === undefined) {
+		return false;
+	}
+
+	if (
+		options.showOnlyEmptyInputs &&
+		!isEmptyPropertyValue(type, rawValue, value)
+	) {
+		return false;
+	}
+
+	return true;
+}
+
 function getConfiguredFieldType(
 	app: App,
 	propertyName: string,

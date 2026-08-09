@@ -39,9 +39,24 @@ views:
       - featured
       - review-date
       - appointment
+      - non-existing-property
     itemSpacing: 8
     formWidth: 80
     showOnlyEmptyInputs: true
+  - type: base-form
+    name: Existing Properties Only
+    order:
+      - full-name
+      - interests
+      - score
+      - featured
+      - review-date
+      - appointment
+      - non-existing-property
+    itemSpacing: 8
+    formWidth: 80
+    showOnlyEmptyInputs: true
+    showOnlyExistingInputs: true
   - type: base-form
     name: This - Form
     filters:

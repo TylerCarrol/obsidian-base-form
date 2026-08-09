@@ -2,6 +2,7 @@ import type { BasesAllOptions, BasesViewConfig } from 'obsidian';
 
 const SHOW_FILE_NAME_KEY = 'showFileName';
 const SHOW_ONLY_EMPTY_INPUTS_KEY = 'showOnlyEmptyInputs';
+const SHOW_ONLY_EXISTING_INPUTS_KEY = 'showOnlyExistingInputs';
 const ITEM_SPACING_KEY = 'itemSpacing';
 const FORM_WIDTH_KEY = 'formWidth';
 const MIN_ITEM_SPACING = 0;
@@ -12,6 +13,7 @@ const MAX_FORM_WIDTH = 80;
 export interface FormViewSettings {
 	showFileName: boolean;
 	showOnlyEmptyInputs: boolean;
+	showOnlyExistingInputs: boolean;
 	itemSpacing: number;
 	formWidth: number;
 }
@@ -19,6 +21,7 @@ export interface FormViewSettings {
 export const DEFAULT_FORM_VIEW_SETTINGS: FormViewSettings = {
 	showFileName: true,
 	showOnlyEmptyInputs: false,
+	showOnlyExistingInputs: false,
 	itemSpacing: 8,
 	formWidth: 52,
 };
@@ -36,6 +39,12 @@ export function getFormViewOptions(): BasesAllOptions[] {
 			key: SHOW_ONLY_EMPTY_INPUTS_KEY,
 			displayName: 'Show only empty property inputs',
 			default: DEFAULT_FORM_VIEW_SETTINGS.showOnlyEmptyInputs,
+		},
+		{
+			type: 'toggle',
+			key: SHOW_ONLY_EXISTING_INPUTS_KEY,
+			displayName: 'Show only existing property inputs',
+			default: DEFAULT_FORM_VIEW_SETTINGS.showOnlyExistingInputs,
 		},
 		{
 			type: 'slider',
@@ -65,6 +74,7 @@ export function getFormViewSettings(
 ): FormViewSettings {
 	const showFileName = config.get(SHOW_FILE_NAME_KEY);
 	const showOnlyEmptyInputs = config.get(SHOW_ONLY_EMPTY_INPUTS_KEY);
+	const showOnlyExistingInputs = config.get(SHOW_ONLY_EXISTING_INPUTS_KEY);
 	const itemSpacing = config.get(ITEM_SPACING_KEY);
 	const formWidth = config.get(FORM_WIDTH_KEY);
 
@@ -77,6 +87,10 @@ export function getFormViewSettings(
 			typeof showOnlyEmptyInputs === 'boolean'
 				? showOnlyEmptyInputs
 				: DEFAULT_FORM_VIEW_SETTINGS.showOnlyEmptyInputs,
+		showOnlyExistingInputs:
+			typeof showOnlyExistingInputs === 'boolean'
+				? showOnlyExistingInputs
+				: DEFAULT_FORM_VIEW_SETTINGS.showOnlyExistingInputs,
 		itemSpacing:
 			typeof itemSpacing === 'number' && Number.isFinite(itemSpacing)
 				? Math.min(
