@@ -11,6 +11,7 @@ import type {
 	FormControlValue,
 	FormFieldType,
 } from './property-values';
+import { LinkInputSuggest } from './input-suggest';
 
 export type FormControl = HTMLInputElement | HTMLTextAreaElement;
 
@@ -40,14 +41,14 @@ export function renderEditableField({
 	rawValue,
 	sourcePath,
 	value,
-}: EditableFieldOptions): void {
+}: EditableFieldOptions): LinkInputSuggest | null {
 	const labelEl = fieldEl.createEl('label', {
 		cls: 'base-form-field-label',
 		text: displayName,
 	});
 
 	const fallback = getValueFallback(fieldType, value);
-	const { control, focusControl } = createControl(
+	const { control, focusControl, inputSuggest } = createControl(
 		app,
 		fieldEl,
 		fieldType,
@@ -76,6 +77,8 @@ export function renderEditableField({
 	if (focusControl !== control) {
 		focusControl.setAttribute('aria-describedby', statusEl.id);
 	}
+
+	return inputSuggest;
 }
 
 export function renderReadOnlyField(
@@ -117,6 +120,7 @@ export function renderReadOnlyField(
 interface CreatedControl {
 	control: FormControl;
 	focusControl: FormControl;
+	inputSuggest: LinkInputSuggest | null;
 }
 
 function createControl(
@@ -136,7 +140,11 @@ function createControl(
 			attr: { rows: '3' },
 		});
 		textarea.value = String(value);
-		return { control: textarea, focusControl: textarea };
+		return {
+			control: textarea,
+			focusControl: textarea,
+			inputSuggest: null,
+		};
 	}
 
 	if (fieldType === 'text' && hasLinkSyntax(String(value))) {
@@ -178,7 +186,13 @@ function createControl(
 			break;
 
 	}
-	return { control: input, focusControl: input };
+	return {
+		control: input,
+		focusControl: input,
+		inputSuggest: shouldEnableLinkSuggestions(fieldType)
+			? new LinkInputSuggest(app, input, sourcePath)
+			: null,
+	};
 }
 
 function createListControl(
@@ -278,11 +292,16 @@ function createListControl(
 	input.addEventListener('blur', () => {
 		commitInput(true);
 	});
+	const inputSuggest = shouldEnableLinkSuggestions('list')
+		? new LinkInputSuggest(app, input, sourcePath, () => {
+			commitInput(false);
+		})
+		: null;
 
 	renderChips();
 	hiddenValue.value = items.join('\n');
 
-	return { control: hiddenValue, focusControl: input };
+	return { control: hiddenValue, focusControl: input, inputSuggest };
 }
 
 function createLinkedTextControl(
@@ -354,11 +373,15 @@ function createLinkedTextControl(
 	hiddenValue.value = value;
 	enterPreviewMode();
 
-	return { control: hiddenValue, focusControl: input };
+	return {
+		control: hiddenValue,
+		focusControl: input,
+		inputSuggest: new LinkInputSuggest(app, input, sourcePath),
+	};
 }
 
-export function shouldEnableLinkSuggestions(_fieldType: FormFieldType): boolean {
-	return false;
+export function shouldEnableLinkSuggestions(fieldType: FormFieldType): boolean {
+	return fieldType === 'text' || fieldType === 'list';
 }
 
 function renderLinkAwareList(

@@ -1,3 +1,54 @@
+export abstract class AbstractInputSuggest<T> {
+	private readonly selectCallbacks: Array<(
+		value: T,
+		event: MouseEvent | KeyboardEvent,
+	) => unknown> = [];
+
+	constructor(
+		public app: unknown,
+		private readonly textInputEl: HTMLInputElement | HTMLDivElement,
+	) {}
+
+	protected abstract getSuggestions(query: string): T[] | Promise<T[]>;
+
+	abstract renderSuggestion(value: T, el: HTMLElement): void;
+
+	getValue(): string {
+		return this.textInputEl instanceof HTMLInputElement
+			? this.textInputEl.value
+			: this.textInputEl.textContent ?? '';
+	}
+
+	setValue(value: string): void {
+		if (this.textInputEl instanceof HTMLInputElement) {
+			this.textInputEl.value = value;
+		} else {
+			this.textInputEl.textContent = value;
+		}
+	}
+
+	onSelect(
+		callback: (
+			value: T,
+			event: MouseEvent | KeyboardEvent,
+		) => unknown,
+	): this {
+		this.selectCallbacks.push(callback);
+		return this;
+	}
+
+	selectSuggestion(
+		value: T,
+		event: MouseEvent | KeyboardEvent,
+	): void {
+		for (const callback of this.selectCallbacks) {
+			callback(value, event);
+		}
+	}
+
+	close(): void {}
+}
+
 export class Notice {
 	constructor(public message: string) {}
 }

@@ -27,6 +27,7 @@ beforeAll(() => {
 			attr?: Record<string, string>;
 		}) => HTMLElement;
 		addClass?: (...classes: string[]) => void;
+		empty?: () => void;
 		setText?: (text: string) => void;
 	};
 
@@ -71,6 +72,12 @@ beforeAll(() => {
 		};
 	}
 
+	if (prototype.empty === undefined) {
+		prototype.empty = function empty(this: HTMLElement): void {
+			this.replaceChildren();
+		};
+	}
+
 	if (prototype.setText === undefined) {
 		prototype.setText = function setText(this: HTMLElement, text: string): void {
 			this.textContent = text;
@@ -79,9 +86,10 @@ beforeAll(() => {
 });
 
 describe('link suggestion toggle', () => {
-	it('disables link suggestions for editable text and list controls', () => {
-		expect(shouldEnableLinkSuggestions('text')).toBe(false);
-		expect(shouldEnableLinkSuggestions('list')).toBe(false);
+	it('enables link suggestions for editable text and list controls', () => {
+		expect(shouldEnableLinkSuggestions('text')).toBe(true);
+		expect(shouldEnableLinkSuggestions('list')).toBe(true);
+		expect(shouldEnableLinkSuggestions('number')).toBe(false);
 	});
 });
 
@@ -165,5 +173,56 @@ describe('editable text link rendering', () => {
 		expect(link).not.toBeNull();
 		expect(link?.dataset.filePath).toBe('Demo notes/Grace Hopper.md');
 		expect(fieldEl.querySelectorAll('input').length).toBe(2);
+	});
+});
+
+describe('editable list link suggestions', () => {
+	it('commits a selected note as a linked list item', () => {
+		const linkedFile = { path: 'Demo notes/Grace Hopper.md' };
+		const app = {
+			metadataCache: {
+				getFirstLinkpathDest: vi.fn(() => linkedFile),
+			},
+		} as never;
+		const fieldEl = document.createElement('div');
+		const inputSuggest = renderEditableField({
+			app,
+			controlId: 'related-control',
+			displayName: 'Related',
+			fieldEl,
+			fieldType: 'list',
+			filePath: 'Demo notes/Alan Turing.md',
+			propertyName: 'related',
+			rawValue: [],
+			sourcePath: 'Demo notes/Alan Turing.md',
+			value: null,
+		});
+		const input = fieldEl.querySelector<HTMLInputElement>(
+			'.base-form-list-input',
+		);
+		const hiddenValue = fieldEl.querySelector<HTMLInputElement>(
+			'.base-form-list-value',
+		);
+		input!.value = '[[Grace';
+		input!.setSelectionRange(input!.value.length, input!.value.length);
+
+		inputSuggest?.selectSuggestion(
+			{
+				file: {
+					basename: 'Grace Hopper',
+					path: 'Demo notes/Grace Hopper.md',
+				},
+				linkText: 'Grace Hopper',
+			} as never,
+			new KeyboardEvent('keydown', { key: 'Enter' }),
+		);
+
+		expect(hiddenValue?.value).toBe('[[Grace Hopper]]');
+		expect(input?.value).toBe('');
+		expect(
+			fieldEl.querySelector<HTMLAnchorElement>(
+				'.base-form-list-chip a.base-form-link',
+			)?.dataset.filePath,
+		).toBe('Demo notes/Grace Hopper.md');
 	});
 });

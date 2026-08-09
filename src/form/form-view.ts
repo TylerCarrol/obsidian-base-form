@@ -24,6 +24,7 @@ import {
 	renderReadOnlyField,
 } from './field-renderer';
 import type { FormControl } from './field-renderer';
+import type { LinkInputSuggest } from './input-suggest';
 import {
 	getRawValue,
 	isEditablePropertyValue,
@@ -39,6 +40,7 @@ export class BaseFormView extends BasesView {
 	private static nextInstanceId = 0;
 	private readonly containerEl: HTMLElement;
 	private readonly drafts = new Map<string, FormControlValue>();
+	private readonly inputSuggestions: LinkInputSuggest[] = [];
 	private pendingFocus:
 		| {
 				filePath: string;
@@ -65,6 +67,7 @@ export class BaseFormView extends BasesView {
 
 	onunload(): void {
 		this.drafts.clear();
+		this.closeInputSuggestions();
 		this.containerEl.remove();
 	}
 
@@ -79,6 +82,7 @@ export class BaseFormView extends BasesView {
 
 	private render(): void {
 		this.renderId++;
+		this.closeInputSuggestions();
 		this.containerEl.empty();
 		const settings = getFormViewSettings(this.config);
 		this.containerEl.style.setProperty(
@@ -226,7 +230,7 @@ export class BaseFormView extends BasesView {
 			entryIndex,
 			propertyIndex,
 		);
-		renderEditableField({
+		const inputSuggest = renderEditableField({
 			app: this.app,
 			controlId,
 			displayName,
@@ -245,6 +249,16 @@ export class BaseFormView extends BasesView {
 			sourcePath: entry.file.path,
 			value,
 		});
+		if (inputSuggest !== null) {
+			this.inputSuggestions.push(inputSuggest);
+		}
+	}
+
+	private closeInputSuggestions(): void {
+		for (const inputSuggest of this.inputSuggestions) {
+			inputSuggest.close();
+		}
+		this.inputSuggestions.length = 0;
 	}
 
 	private readonly handleClick = (event: MouseEvent): void => {
