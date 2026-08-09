@@ -1,4 +1,10 @@
-import { ListValue, NullValue, RenderContext } from 'obsidian';
+import {
+	App,
+	ListValue,
+	NullValue,
+	StringValue,
+	RenderContext,
+} from 'obsidian';
 import type { Value } from 'obsidian';
 import { formatFormValue } from './property-values';
 import type {
@@ -9,6 +15,7 @@ import type {
 export type FormControl = HTMLInputElement | HTMLTextAreaElement;
 
 interface EditableFieldOptions {
+	app: App;
 	controlId: string;
 	displayName: string;
 	draftValue?: FormControlValue;
@@ -17,10 +24,12 @@ interface EditableFieldOptions {
 	filePath: string;
 	propertyName: string;
 	rawValue: unknown;
+	sourcePath: string;
 	value: Value | null;
 }
 
 export function renderEditableField({
+	app,
 	controlId,
 	displayName,
 	draftValue,
@@ -29,6 +38,7 @@ export function renderEditableField({
 	filePath,
 	propertyName,
 	rawValue,
+	sourcePath,
 	value,
 }: EditableFieldOptions): void {
 	const labelEl = fieldEl.createEl('label', {
@@ -38,10 +48,12 @@ export function renderEditableField({
 
 	const fallback = getValueFallback(fieldType, value);
 	const { control, focusControl } = createControl(
+		app,
 		fieldEl,
 		fieldType,
 		draftValue ??
 			formatFormValue(fieldType, rawValue, fallback),
+		sourcePath,
 	);
 	control.id = controlId;
 	const focusId =
@@ -67,8 +79,10 @@ export function renderEditableField({
 }
 
 export function renderReadOnlyField(
+	app: App,
 	fieldEl: HTMLElement,
 	displayName: string,
+	sourcePath: string,
 	value: Value | null,
 ): void {
 	fieldEl.addClass('is-read-only');
@@ -84,6 +98,19 @@ export function renderReadOnlyField(
 		valueEl.setText('Not set');
 		return;
 	}
+	if (value instanceof ListValue) {
+		renderLinkAwareList(valueEl, app, sourcePath, value);
+		return;
+	}
+	if (value instanceof StringValue) {
+		renderLinkAwareText(valueEl, app, sourcePath, value.toString());
+		return;
+	}
+	const renderedValue = value.toString();
+	if (hasLinkSyntax(renderedValue)) {
+		renderLinkAwareText(valueEl, app, sourcePath, renderedValue);
+		return;
+	}
 	value.renderTo(valueEl, new RenderContext());
 }
 
@@ -93,12 +120,14 @@ interface CreatedControl {
 }
 
 function createControl(
+	app: App,
 	fieldEl: HTMLElement,
 	fieldType: FormFieldType,
 	value: FormControlValue,
+	sourcePath: string,
 ): CreatedControl {
 	if (fieldType === 'list') {
-		return createListControl(fieldEl, String(value));
+		return createListControl(app, fieldEl, String(value), sourcePath);
 	}
 
 	if (fieldType === 'text' && String(value).includes('\n')) {
@@ -108,6 +137,15 @@ function createControl(
 		});
 		textarea.value = String(value);
 		return { control: textarea, focusControl: textarea };
+	}
+
+	if (fieldType === 'text' && hasLinkSyntax(String(value))) {
+		return createLinkedTextControl(
+			app,
+			fieldEl,
+			String(value),
+			sourcePath,
+		);
 	}
 
 	const input = fieldEl.createEl('input', {
@@ -136,14 +174,18 @@ function createControl(
 		case 'text':
 			input.type = 'text';
 			input.value = String(value);
+			shouldEnableLinkSuggestions(fieldType);
 			break;
+
 	}
 	return { control: input, focusControl: input };
 }
 
 function createListControl(
+	app: App,
 	fieldEl: HTMLElement,
 	value: string,
+	sourcePath: string,
 ): CreatedControl {
 	const hiddenValue = fieldEl.createEl('input', {
 		cls: 'base-form-control base-form-list-value',
@@ -175,12 +217,12 @@ function createListControl(
 	const renderChips = (): void => {
 		chipsEl.empty();
 		for (let index = 0; index < items.length; index++) {
-			const item = items[index];
+			const item = items[index] ?? '';
 			const chipEl = chipsEl.createDiv({ cls: 'base-form-list-chip' });
-			chipEl.createSpan({
+			const labelEl = chipEl.createSpan({
 				cls: 'base-form-list-chip-label',
-				text: item,
 			});
+			renderLinkAwareText(labelEl, app, sourcePath, item);
 
 			const removeButton = chipEl.createEl('button', {
 				cls: 'base-form-list-chip-remove',
@@ -233,12 +275,238 @@ function createListControl(
 			syncValue(false);
 		}
 	});
-	input.addEventListener('blur', () => commitInput(true));
+	input.addEventListener('blur', () => {
+		commitInput(true);
+	});
 
 	renderChips();
 	hiddenValue.value = items.join('\n');
 
 	return { control: hiddenValue, focusControl: input };
+}
+
+function createLinkedTextControl(
+	app: App,
+	fieldEl: HTMLElement,
+	value: string,
+	sourcePath: string,
+): CreatedControl {
+	const hiddenValue = fieldEl.createEl('input', {
+		cls: 'base-form-control base-form-text-value',
+		attr: { type: 'hidden' },
+	});
+	const wrapper = fieldEl.createDiv({
+		cls: 'base-form-text-link-control is-previewing',
+	});
+	const previewEl = wrapper.createDiv({
+		cls: 'base-form-text-link-preview',
+		attr: { tabindex: '0' },
+	});
+	const input = wrapper.createEl('input', {
+		cls: 'base-form-control base-form-text-input',
+		attr: { type: 'text', autocomplete: 'off' },
+	});
+	input.value = value;
+
+	const syncValue = (persistChange: boolean): void => {
+		hiddenValue.value = input.value;
+		hiddenValue.dispatchEvent(new Event('input', { bubbles: true }));
+		if (persistChange) {
+			hiddenValue.dispatchEvent(new Event('change', { bubbles: true }));
+		}
+	};
+
+	const renderPreview = (): void => {
+		previewEl.textContent = '';
+		renderLinkAwareText(previewEl, app, sourcePath, input.value);
+	};
+
+	const enterPreviewMode = (): void => {
+		renderPreview();
+		wrapper.addClass('is-previewing');
+	};
+
+	previewEl.addEventListener('click', (event) => {
+		const target = event.target as Element | null;
+		if (target?.closest('a.base-form-link') !== null) {
+			return;
+		}
+		input.focus();
+	});
+	previewEl.addEventListener('keydown', (event) => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			input.focus();
+		}
+	});
+
+	input.addEventListener('focus', () => {
+		wrapper.removeClass('is-previewing');
+	});
+	input.addEventListener('input', () => {
+		syncValue(false);
+	});
+	input.addEventListener('blur', () => {
+		syncValue(true);
+		enterPreviewMode();
+	});
+
+	hiddenValue.value = value;
+	enterPreviewMode();
+
+	return { control: hiddenValue, focusControl: input };
+}
+
+export function shouldEnableLinkSuggestions(_fieldType: FormFieldType): boolean {
+	return false;
+}
+
+function renderLinkAwareList(
+	container: HTMLElement,
+	app: App,
+	sourcePath: string,
+	value: ListValue,
+): void {
+	for (let index = 0; index < value.length(); index++) {
+		if (index > 0) {
+			container.createEl('br');
+		}
+		const item = value.get(index);
+		renderLinkAwareText(container, app, sourcePath, item.toString());
+	}
+}
+
+function renderLinkAwareText(
+	container: HTMLElement,
+	app: App,
+	sourcePath: string,
+	text: string,
+): void {
+	const lines = text.split(/\r?\n/);
+	for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+		if (lineIndex > 0) {
+			container.createEl('br');
+		}
+		renderLinkAwareLine(container, app, sourcePath, lines[lineIndex] ?? '');
+	}
+}
+
+function renderLinkAwareLine(
+	container: HTMLElement,
+	app: App,
+	sourcePath: string,
+	line: string,
+): void {
+	const pattern = /\[\[([^\]|#]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
+	let cursor = 0;
+	for (;;) {
+		const match = pattern.exec(line);
+		if (match === null) {
+			break;
+		}
+
+		if (match.index > cursor) {
+			container.createSpan({ text: line.slice(cursor, match.index) });
+		}
+
+		if (match[1] !== undefined) {
+			renderInternalLink(container, app, sourcePath, match[1], match[3] ?? match[1], match[2]);
+		}
+		else {
+			renderExternalLink(container, app, sourcePath, match[4] ?? '', match[5] ?? '');
+		}
+
+		cursor = match.index + match[0].length;
+	}
+
+	if (cursor < line.length) {
+		container.createSpan({ text: line.slice(cursor) });
+	}
+
+	if (line.length === 0) {
+		container.createSpan({ text: '' });
+	}
+}
+
+function renderInternalLink(
+	container: HTMLElement,
+	app: App,
+	sourcePath: string,
+	target: string,
+	label: string,
+	subpath?: string,
+): void {
+	const file = app.metadataCache.getFirstLinkpathDest(target, sourcePath);
+	if (file === null) {
+		container.createSpan({ text: label });
+		return;
+	}
+
+	const link = container.createEl('a', {
+		cls: 'base-form-link',
+		text: label,
+	});
+	link.href = '#';
+	link.dataset.filePath = file.path;
+	if (subpath !== undefined && subpath !== '') {
+		link.dataset.linkSubpath = subpath;
+	}
+}
+
+function renderExternalLink(
+	container: HTMLElement,
+	app: App,
+	sourcePath: string,
+	label: string,
+	target: string,
+): void {
+	if (isExternalLinkTarget(target)) {
+		const link = container.createEl('a', {
+			cls: 'base-form-link',
+			text: label,
+		});
+		link.href = target;
+		link.target = '_blank';
+		link.rel = 'noopener noreferrer';
+		return;
+	}
+
+	const parsed = splitLinkTarget(target);
+	const file = app.metadataCache.getFirstLinkpathDest(parsed.path, sourcePath);
+	if (file === null) {
+		container.createSpan({ text: label });
+		return;
+	}
+
+	const link = container.createEl('a', {
+		cls: 'base-form-link',
+		text: label,
+	});
+	link.href = '#';
+	link.dataset.filePath = file.path;
+	if (parsed.subpath !== '') {
+		link.dataset.linkSubpath = parsed.subpath;
+	}
+}
+
+function splitLinkTarget(target: string): { path: string; subpath: string } {
+	const hashIndex = target.indexOf('#');
+	if (hashIndex === -1) {
+		return { path: target, subpath: '' };
+	}
+
+	return {
+		path: target.slice(0, hashIndex),
+		subpath: target.slice(hashIndex),
+	};
+}
+
+function hasLinkSyntax(text: string): boolean {
+	return /\[\[[^\]]+\]\]|\[[^\]]+\]\([^)]+\)/.test(text);
+}
+
+function isExternalLinkTarget(target: string): boolean {
+	return /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(target.trim());
 }
 
 function getValueFallback(

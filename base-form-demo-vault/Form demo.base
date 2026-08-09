@@ -2,13 +2,17 @@ filters:
   and:
     - note.baseform == true
 formulas:
-  Test: '"Test: " + score + " - " + interests'
   Link: link(file, file)
+  Test: '"Test: " + score + " - " + interests'
 properties:
   note.full-name:
     displayName: Full name
   note.interests:
     displayName: Interests
+  note.reference:
+    displayName: Reference
+  note.related-notes:
+    displayName: Related notes
   note.score:
     displayName: Score
   note.featured:
@@ -23,6 +27,8 @@ views:
     order:
       - full-name
       - interests
+      - reference
+      - related-notes
       - score
       - featured
       - review-date
@@ -35,6 +41,8 @@ views:
     order:
       - full-name
       - interests
+      - reference
+      - related-notes
       - score
       - featured
       - review-date
@@ -46,8 +54,11 @@ views:
   - type: base-form
     name: Existing Properties Only
     order:
+      - formula.Test
       - full-name
       - interests
+      - reference
+      - related-notes
       - score
       - featured
       - review-date
@@ -65,6 +76,8 @@ views:
     order:
       - full-name
       - interests
+      - reference
+      - related-notes
       - score
       - formula.Test
       - featured
@@ -78,6 +91,8 @@ views:
     order:
       - full-name
       - interests
+      - reference
+      - related-notes
       - score
       - featured
       - review-date

@@ -132,6 +132,26 @@ textarea.base-form-control {
 	color: var(--text-normal);
 }
 
+.base-form-list-chip-label .base-form-link,
+.base-form-read-only-value .base-form-link {
+	color: var(--link-color);
+	text-decoration: underline;
+}
+
+.base-form-list-chip-label .base-form-link:hover,
+.base-form-read-only-value .base-form-link:hover {
+	color: var(--link-color-hover);
+}
+
+.base-form-link {
+	color: var(--link-color);
+	text-decoration: underline;
+}
+
+.base-form-link:hover {
+	color: var(--link-color-hover);
+}
+
 .base-form-list-chip .base-form-list-chip-remove {
 	position: relative;
 	display: inline-block;
@@ -204,6 +224,45 @@ textarea.base-form-control {
 
 .base-form-list-value {
 	display: none;
+}
+
+.base-form-text-value {
+	display: none;
+}
+
+.base-form-text-link-control {
+	position: relative;
+}
+
+.base-form-text-link-control .base-form-text-link-preview {
+	display: none;
+}
+
+.base-form-text-link-control.is-previewing .base-form-text-link-preview {
+	display: block;
+	min-height: var(--input-height);
+	padding: var(--size-2-1) var(--size-4-2);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--input-radius);
+	background: var(--background-primary-alt);
+	color: var(--text-normal);
+	line-height: var(--line-height-normal);
+	cursor: text;
+	outline: none;
+}
+
+.base-form-text-link-control.is-previewing .base-form-text-link-preview:focus,
+.base-form-text-link-control.is-previewing .base-form-text-link-preview:focus-visible {
+	border-color: var(--interactive-accent);
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 45%, transparent);
+}
+
+.base-form-text-link-control.is-previewing .base-form-text-input {
+	position: absolute;
+	inset: 0;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
 }
 
 input.base-form-control[type='checkbox'] {

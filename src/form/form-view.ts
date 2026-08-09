@@ -214,7 +214,7 @@ export class BaseFormView extends BasesView {
 			entry.file.extension !== 'md' ||
 			!isEditablePropertyValue(fieldType, rawValue, value)
 		) {
-			renderReadOnlyField(fieldEl, displayName, value);
+			renderReadOnlyField(this.app, fieldEl, displayName, entry.file.path, value);
 			return;
 		}
 
@@ -224,6 +224,7 @@ export class BaseFormView extends BasesView {
 			propertyIndex,
 		);
 		renderEditableField({
+			app: this.app,
 			controlId,
 			displayName,
 			draftValue: this.drafts.get(
@@ -238,6 +239,7 @@ export class BaseFormView extends BasesView {
 			filePath: entry.file.path,
 			propertyName: property.name,
 			rawValue,
+			sourcePath: entry.file.path,
 			value,
 		});
 	}
@@ -245,7 +247,7 @@ export class BaseFormView extends BasesView {
 	private readonly handleClick = (event: MouseEvent): void => {
 		const target = event.target as Element | null;
 		const link = target?.closest<HTMLAnchorElement>(
-			'a.base-form-open-note[data-file-path]',
+			'a[data-file-path]',
 		);
 		if (link === undefined || link === null) {
 			return;
