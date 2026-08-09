@@ -1,7 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
-import { LinkInputSuggest } from '../form/input-suggest';
+import {
+	LinkInputSuggest,
+	ListInputSuggest,
+} from '../form/input-suggest';
 
 class TestLinkInputSuggest extends LinkInputSuggest {
+	getMatches(query: string) {
+		return this.getSuggestions(query);
+	}
+}
+
+class TestListInputSuggest extends ListInputSuggest {
 	getMatches(query: string) {
 		return this.getSuggestions(query);
 	}
@@ -26,6 +35,34 @@ describe('form input suggestions', () => {
 			),
 		},
 	} as never;
+
+	it('opens with all notes when an untouched input receives focus', () => {
+		const input = document.createElement('input');
+		document.body.appendChild(input);
+		const suggest = new TestLinkInputSuggest(
+			app,
+			input,
+			'Demo notes/Alan Turing.md',
+		);
+		const open = vi.spyOn(suggest, 'open');
+
+		input.focus();
+
+		expect(open).toHaveBeenCalledOnce();
+		input.dispatchEvent(new Event('pointerdown'));
+		expect(open).toHaveBeenCalledTimes(2);
+		expect(suggest.getMatches('')).toEqual([
+			{
+				file: ada,
+				linkText: 'Demo notes/Ada Lovelace',
+			},
+			{
+				file: grace,
+				linkText: 'Demo notes/Grace Hopper',
+			},
+		]);
+		input.remove();
+	});
 
 	it('suggests matching Markdown files for an unfinished wikilink', () => {
 		const input = document.createElement('input');
@@ -78,6 +115,85 @@ describe('form input suggestions', () => {
 		expect(input.value).toBe(
 			'See [[Demo notes/Grace Hopper]] today',
 		);
+		expect(onInput).toHaveBeenCalledOnce();
+		expect(onSelect).toHaveBeenCalledOnce();
+	});
+
+	it('inserts a selected note into an untouched input', () => {
+		const input = document.createElement('input');
+		const onInput = vi.fn();
+		input.addEventListener('input', onInput);
+		const suggest = new TestLinkInputSuggest(
+			app,
+			input,
+			'Demo notes/Alan Turing.md',
+		);
+
+		suggest.selectSuggestion(
+			{
+				file: ada,
+				linkText: 'Demo notes/Ada Lovelace',
+			},
+			new MouseEvent('click'),
+		);
+
+		expect(input.value).toBe('[[Demo notes/Ada Lovelace]]');
+		expect(onInput).toHaveBeenCalledOnce();
+	});
+});
+
+describe('list input suggestions', () => {
+	it('suggests existing values that are not in the current list', () => {
+		const input = document.createElement('input');
+		const currentValues = ['[[Grace Hopper]]'];
+		const suggest = new TestListInputSuggest(
+			{} as never,
+			input,
+			() => [
+				'[[Grace Hopper]]',
+				'[[Ada Lovelace]]',
+				'[[Alan Turing]]',
+				'[[Ada Lovelace]]',
+			],
+			() => currentValues,
+			vi.fn(),
+		);
+
+		expect(suggest.getMatches('')).toEqual([
+			'[[Ada Lovelace]]',
+			'[[Alan Turing]]',
+		]);
+		expect(suggest.getMatches('alan')).toEqual(['[[Alan Turing]]']);
+
+		currentValues.push('[[Ada Lovelace]]');
+		expect(suggest.getMatches('')).toEqual(['[[Alan Turing]]']);
+	});
+
+	it('renders the value label and selects the literal list value', () => {
+		const input = document.createElement('input');
+		const onInput = vi.fn();
+		const onSelect = vi.fn();
+		input.addEventListener('input', onInput);
+		const suggest = new TestListInputSuggest(
+			{} as never,
+			input,
+			() => ['[[Demo notes/Ada Lovelace]]'],
+			() => [],
+			onSelect,
+		);
+		const suggestionEl = document.createElement('div');
+
+		suggest.renderSuggestion(
+			'[[Demo notes/Ada Lovelace]]',
+			suggestionEl,
+		);
+		suggest.selectSuggestion(
+			'[[Demo notes/Ada Lovelace]]',
+			new MouseEvent('click'),
+		);
+
+		expect(suggestionEl.textContent).toBe('Ada Lovelace');
+		expect(input.value).toBe('[[Demo notes/Ada Lovelace]]');
 		expect(onInput).toHaveBeenCalledOnce();
 		expect(onSelect).toHaveBeenCalledOnce();
 	});

@@ -11,7 +11,11 @@ import type {
 	FormControlValue,
 	FormFieldType,
 } from './property-values';
-import { LinkInputSuggest } from './input-suggest';
+import {
+	LinkInputSuggest,
+	ListInputSuggest,
+} from './input-suggest';
+import type { FormInputSuggest } from './input-suggest';
 
 export type FormControl = HTMLInputElement | HTMLTextAreaElement;
 
@@ -23,6 +27,7 @@ interface EditableFieldOptions {
 	fieldEl: HTMLElement;
 	fieldType: FormFieldType;
 	filePath: string;
+	listSuggestions?: readonly string[];
 	propertyName: string;
 	rawValue: unknown;
 	sourcePath: string;
@@ -37,11 +42,12 @@ export function renderEditableField({
 	fieldEl,
 	fieldType,
 	filePath,
+	listSuggestions = [],
 	propertyName,
 	rawValue,
 	sourcePath,
 	value,
-}: EditableFieldOptions): LinkInputSuggest | null {
+}: EditableFieldOptions): FormInputSuggest | null {
 	const labelEl = fieldEl.createEl('label', {
 		cls: 'base-form-field-label',
 		text: displayName,
@@ -55,6 +61,7 @@ export function renderEditableField({
 		draftValue ??
 			formatFormValue(fieldType, rawValue, fallback),
 		sourcePath,
+		listSuggestions,
 	);
 	control.id = controlId;
 	const focusId =
@@ -120,7 +127,7 @@ export function renderReadOnlyField(
 interface CreatedControl {
 	control: FormControl;
 	focusControl: FormControl;
-	inputSuggest: LinkInputSuggest | null;
+	inputSuggest: FormInputSuggest | null;
 }
 
 function createControl(
@@ -129,9 +136,16 @@ function createControl(
 	fieldType: FormFieldType,
 	value: FormControlValue,
 	sourcePath: string,
+	listSuggestions: readonly string[],
 ): CreatedControl {
 	if (fieldType === 'list') {
-		return createListControl(app, fieldEl, String(value), sourcePath);
+		return createListControl(
+			app,
+			fieldEl,
+			String(value),
+			sourcePath,
+			listSuggestions,
+		);
 	}
 
 	if (fieldType === 'text' && String(value).includes('\n')) {
@@ -200,6 +214,7 @@ function createListControl(
 	fieldEl: HTMLElement,
 	value: string,
 	sourcePath: string,
+	listSuggestions: readonly string[],
 ): CreatedControl {
 	const hiddenValue = fieldEl.createEl('input', {
 		cls: 'base-form-control base-form-list-value',
@@ -270,6 +285,7 @@ function createListControl(
 		syncValue(persistChange);
 		if (!persistChange) {
 			input.focus();
+			input.dispatchEvent(new Event('input', { bubbles: true }));
 		}
 	};
 
@@ -293,7 +309,7 @@ function createListControl(
 		commitInput(true);
 	});
 	const inputSuggest = shouldEnableLinkSuggestions('list')
-		? new LinkInputSuggest(app, input, sourcePath, () => {
+		? new ListInputSuggest(app, input, () => listSuggestions, () => items, () => {
 			commitInput(false);
 		})
 		: null;

@@ -203,22 +203,19 @@ describe('editable list link suggestions', () => {
 		const hiddenValue = fieldEl.querySelector<HTMLInputElement>(
 			'.base-form-list-value',
 		);
-		input!.value = '[[Grace';
-		input!.setSelectionRange(input!.value.length, input!.value.length);
+		const inputValues: string[] = [];
+		input?.addEventListener('input', () => {
+			inputValues.push(input.value);
+		});
 
 		inputSuggest?.selectSuggestion(
-			{
-				file: {
-					basename: 'Grace Hopper',
-					path: 'Demo notes/Grace Hopper.md',
-				},
-				linkText: 'Grace Hopper',
-			} as never,
+			'[[Grace Hopper]]' as never,
 			new KeyboardEvent('keydown', { key: 'Enter' }),
 		);
 
 		expect(hiddenValue?.value).toBe('[[Grace Hopper]]');
 		expect(input?.value).toBe('');
+		expect(inputValues).toEqual(['[[Grace Hopper]]', '']);
 		expect(
 			fieldEl.querySelector<HTMLAnchorElement>(
 				'.base-form-list-chip a.base-form-link',

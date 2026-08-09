@@ -4,7 +4,7 @@ full-name: Ada Lovelace
 interests:
   - Mathematics
   - Computing
-reference: "[[Alan Turing]]"
+reference: ""
 related-notes:
   - "[[Grace Hopper]]"
 score: 98.5

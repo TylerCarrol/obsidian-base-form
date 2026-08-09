@@ -5,7 +5,7 @@ BaseForm adds an editable **Form** view to [Obsidian Bases](https://help.obsidia
 ## Features
 
 - Edit text, list, number, checkbox, date, and date-and-time properties.
-- Autocomplete note links in text and list fields after typing `[[`.
+- Autocomplete in text and list fields.
 - Save changes directly to note frontmatter with Obsidian's file API.
 - Use the property order and display names set in the Bases toolbar.
 - Show each matching note as its own form.

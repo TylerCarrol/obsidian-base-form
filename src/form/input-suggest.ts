@@ -12,6 +12,10 @@ interface LinkTrigger {
 	to: number;
 }
 
+type ListValueProvider = () => readonly string[];
+
+export type FormInputSuggest = LinkInputSuggest | ListInputSuggest;
+
 export class LinkInputSuggest extends AbstractInputSuggest<LinkSuggestion> {
 	constructor(
 		app: App,
@@ -23,10 +27,21 @@ export class LinkInputSuggest extends AbstractInputSuggest<LinkSuggestion> {
 		if (onSelect !== undefined) {
 			this.onSelect(onSelect);
 		}
+		const openSuggestions = (): void => {
+			if (this.getTrigger(inputEl.value) !== null) {
+				this.open();
+			}
+		};
+		inputEl.addEventListener('focus', openSuggestions);
+		inputEl.addEventListener('pointerdown', () => {
+			if (inputEl.ownerDocument.activeElement === inputEl) {
+				openSuggestions();
+			}
+		});
 	}
 
 	protected getSuggestions(value: string): LinkSuggestion[] {
-		const trigger = getLinkTrigger(value, this.getCursor(value));
+		const trigger = this.getTrigger(value);
 		if (trigger === null) {
 			return [];
 		}
@@ -75,7 +90,7 @@ export class LinkInputSuggest extends AbstractInputSuggest<LinkSuggestion> {
 		event: MouseEvent | KeyboardEvent,
 	): void {
 		const value = this.inputEl.value;
-		const trigger = getLinkTrigger(value, this.getCursor(value));
+		const trigger = this.getTrigger(value);
 		if (trigger === null) {
 			this.close();
 			return;
@@ -96,6 +111,13 @@ export class LinkInputSuggest extends AbstractInputSuggest<LinkSuggestion> {
 		return this.inputEl.value === value
 			? (this.inputEl.selectionStart ?? value.length)
 			: value.length;
+	}
+
+	private getTrigger(value: string): LinkTrigger | null {
+		return (
+			getLinkTrigger(value, this.getCursor(value)) ??
+			getPlainInputTrigger(value)
+		);
 	}
 }
 
@@ -122,4 +144,91 @@ function getLinkTrigger(value: string, cursor: number): LinkTrigger | null {
 		query,
 		to: value.slice(cursor, cursor + 2) === ']]' ? cursor + 2 : cursor,
 	};
+}
+
+function getPlainInputTrigger(value: string): LinkTrigger | null {
+	if (value.includes('[[') || value.includes(']]')) {
+		return null;
+	}
+
+	return {
+		from: 0,
+		query: value,
+		to: value.length,
+	};
+}
+
+export class ListInputSuggest extends AbstractInputSuggest<string> {
+	constructor(
+		app: App,
+		private readonly inputEl: HTMLInputElement,
+		private readonly getCandidates: ListValueProvider,
+		private readonly getCurrentValues: ListValueProvider,
+		onSelect: () => void,
+	) {
+		super(app, inputEl);
+		this.onSelect(onSelect);
+	}
+
+	protected getSuggestions(query: string): string[] {
+		const normalizedQuery = query.trim().toLocaleLowerCase();
+		const currentValues = new Set(
+			this.getCurrentValues().map(normalizeListValue),
+		);
+		const seen = new Set<string>();
+
+		return this.getCandidates()
+			.filter((candidate) => {
+				const normalizedCandidate = normalizeListValue(candidate);
+				if (
+					candidate === '' ||
+					currentValues.has(normalizedCandidate) ||
+					seen.has(normalizedCandidate)
+				) {
+					return false;
+				}
+				seen.add(normalizedCandidate);
+				if (normalizedQuery === '') {
+					return true;
+				}
+				return [candidate, getListValueLabel(candidate)].some((value) =>
+					value.toLocaleLowerCase().includes(normalizedQuery),
+				);
+			})
+			.sort((left, right) =>
+				getListValueLabel(left).localeCompare(getListValueLabel(right)),
+			);
+	}
+
+	renderSuggestion(value: string, el: HTMLElement): void {
+		el.textContent = getListValueLabel(value);
+	}
+
+	selectSuggestion(
+		value: string,
+		event: MouseEvent | KeyboardEvent,
+	): void {
+		this.inputEl.value = value;
+		this.inputEl.setSelectionRange(value.length, value.length);
+		this.inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+		super.selectSuggestion(value, event);
+	}
+}
+
+function normalizeListValue(value: string): string {
+	return value.toLocaleLowerCase();
+}
+
+function getListValueLabel(value: string): string {
+	const wikilink = /^\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|([^\]]+))?\]\]$/.exec(
+		value,
+	);
+	if (wikilink !== null) {
+		const target = wikilink[1] ?? value;
+		const pathParts = target.replace(/\.md$/i, '').split('/');
+		return wikilink[2] ?? pathParts.at(-1) ?? target;
+	}
+
+	const markdownLink = /^\[([^\]]+)\]\([^)]+\)$/.exec(value);
+	return markdownLink?.[1] ?? value;
 }

@@ -46,6 +46,8 @@ export abstract class AbstractInputSuggest<T> {
 		}
 	}
 
+	open(): void {}
+
 	close(): void {}
 }
 

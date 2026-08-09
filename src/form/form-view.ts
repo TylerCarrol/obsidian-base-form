@@ -24,7 +24,7 @@ import {
 	renderReadOnlyField,
 } from './field-renderer';
 import type { FormControl } from './field-renderer';
-import type { LinkInputSuggest } from './input-suggest';
+import type { FormInputSuggest } from './input-suggest';
 import {
 	getRawValue,
 	isEditablePropertyValue,
@@ -32,6 +32,7 @@ import {
 	resolveFieldTypes,
 } from './property-types';
 import { getFormViewSettings } from './view-options';
+import { collectListPropertyValues } from './property-suggestions';
 
 export const BASE_FORM_VIEW_TYPE = 'base-form';
 
@@ -40,7 +41,8 @@ export class BaseFormView extends BasesView {
 	private static nextInstanceId = 0;
 	private readonly containerEl: HTMLElement;
 	private readonly drafts = new Map<string, FormControlValue>();
-	private readonly inputSuggestions: LinkInputSuggest[] = [];
+	private readonly inputSuggestions: FormInputSuggest[] = [];
+	private listPropertyValues = new Map<string, readonly string[]>();
 	private pendingFocus:
 		| {
 				filePath: string;
@@ -67,6 +69,7 @@ export class BaseFormView extends BasesView {
 
 	onunload(): void {
 		this.drafts.clear();
+		this.listPropertyValues.clear();
 		this.closeInputSuggestions();
 		this.containerEl.remove();
 	}
@@ -105,6 +108,15 @@ export class BaseFormView extends BasesView {
 
 		const properties = this.getVisibleProperties();
 		const fieldTypes = resolveFieldTypes(this.app, entries, properties);
+		this.listPropertyValues = collectListPropertyValues(
+			this.app,
+			properties.flatMap((propertyId) => {
+				const property = parsePropertyId(propertyId);
+				return property.type === 'note' && fieldTypes.get(propertyId) === 'list'
+					? [property.name]
+					: [];
+			}),
+		);
 		this.containerEl.createDiv({
 			cls: 'base-form-summary',
 			text: `${entries.length} ${entries.length === 1 ? 'note' : 'notes'}`,
@@ -246,6 +258,8 @@ export class BaseFormView extends BasesView {
 			filePath: entry.file.path,
 			propertyName: property.name,
 			rawValue,
+			listSuggestions:
+				this.listPropertyValues.get(property.name.toLocaleLowerCase()) ?? [],
 			sourcePath: entry.file.path,
 			value,
 		});
