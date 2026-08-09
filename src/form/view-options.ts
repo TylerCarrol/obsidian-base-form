@@ -1,6 +1,8 @@
 import type { BasesAllOptions, BasesViewConfig } from 'obsidian';
 
 const SHOW_FILE_NAME_KEY = 'showFileName';
+const HIDE_NON_EMPTY_PROPERTIES_KEY = 'hideNonEmptyProperties';
+const HIDE_NON_EXISTENT_PROPERTIES_KEY = 'hideNonExistentProperties';
 const SHOW_ONLY_EMPTY_INPUTS_KEY = 'showOnlyEmptyInputs';
 const SHOW_ONLY_EXISTING_INPUTS_KEY = 'showOnlyExistingInputs';
 const ITEM_SPACING_KEY = 'itemSpacing';
@@ -12,16 +14,16 @@ const MAX_FORM_WIDTH = 80;
 
 export interface FormViewSettings {
 	showFileName: boolean;
-	showOnlyEmptyInputs: boolean;
-	showOnlyExistingInputs: boolean;
+	hideNonEmptyProperties: boolean;
+	hideNonExistentProperties: boolean;
 	itemSpacing: number;
 	formWidth: number;
 }
 
 export const DEFAULT_FORM_VIEW_SETTINGS: FormViewSettings = {
 	showFileName: true,
-	showOnlyEmptyInputs: false,
-	showOnlyExistingInputs: false,
+	hideNonEmptyProperties: false,
+	hideNonExistentProperties: false,
 	itemSpacing: 8,
 	formWidth: 52,
 };
@@ -36,15 +38,15 @@ export function getFormViewOptions(): BasesAllOptions[] {
 		},
 		{
 			type: 'toggle',
-			key: SHOW_ONLY_EMPTY_INPUTS_KEY,
-			displayName: 'Show only empty property inputs',
-			default: DEFAULT_FORM_VIEW_SETTINGS.showOnlyEmptyInputs,
+			key: HIDE_NON_EMPTY_PROPERTIES_KEY,
+			displayName: 'Hide non-empty properties',
+			default: DEFAULT_FORM_VIEW_SETTINGS.hideNonEmptyProperties,
 		},
 		{
 			type: 'toggle',
-			key: SHOW_ONLY_EXISTING_INPUTS_KEY,
-			displayName: 'Show only existing property inputs',
-			default: DEFAULT_FORM_VIEW_SETTINGS.showOnlyExistingInputs,
+			key: HIDE_NON_EXISTENT_PROPERTIES_KEY,
+			displayName: 'Hide non-existent properties',
+			default: DEFAULT_FORM_VIEW_SETTINGS.hideNonExistentProperties,
 		},
 		{
 			type: 'slider',
@@ -73,8 +75,12 @@ export function getFormViewSettings(
 	config: Pick<BasesViewConfig, 'get'>,
 ): FormViewSettings {
 	const showFileName = config.get(SHOW_FILE_NAME_KEY);
-	const showOnlyEmptyInputs = config.get(SHOW_ONLY_EMPTY_INPUTS_KEY);
-	const showOnlyExistingInputs = config.get(SHOW_ONLY_EXISTING_INPUTS_KEY);
+	const hideNonEmptyProperties =
+		config.get(HIDE_NON_EMPTY_PROPERTIES_KEY) ??
+		config.get(SHOW_ONLY_EMPTY_INPUTS_KEY);
+	const hideNonExistentProperties =
+		config.get(HIDE_NON_EXISTENT_PROPERTIES_KEY) ??
+		config.get(SHOW_ONLY_EXISTING_INPUTS_KEY);
 	const itemSpacing = config.get(ITEM_SPACING_KEY);
 	const formWidth = config.get(FORM_WIDTH_KEY);
 
@@ -83,14 +89,14 @@ export function getFormViewSettings(
 			typeof showFileName === 'boolean'
 				? showFileName
 				: DEFAULT_FORM_VIEW_SETTINGS.showFileName,
-		showOnlyEmptyInputs:
-			typeof showOnlyEmptyInputs === 'boolean'
-				? showOnlyEmptyInputs
-				: DEFAULT_FORM_VIEW_SETTINGS.showOnlyEmptyInputs,
-		showOnlyExistingInputs:
-			typeof showOnlyExistingInputs === 'boolean'
-				? showOnlyExistingInputs
-				: DEFAULT_FORM_VIEW_SETTINGS.showOnlyExistingInputs,
+		hideNonEmptyProperties:
+			typeof hideNonEmptyProperties === 'boolean'
+				? hideNonEmptyProperties
+				: DEFAULT_FORM_VIEW_SETTINGS.hideNonEmptyProperties,
+		hideNonExistentProperties:
+			typeof hideNonExistentProperties === 'boolean'
+				? hideNonExistentProperties
+				: DEFAULT_FORM_VIEW_SETTINGS.hideNonExistentProperties,
 		itemSpacing:
 			typeof itemSpacing === 'number' && Number.isFinite(itemSpacing)
 				? Math.min(

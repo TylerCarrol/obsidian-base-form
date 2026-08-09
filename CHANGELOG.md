@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Rename the property visibility filters to hide non-empty and hide non-existent properties, and keep formula properties visible.
+
 ## [0.3.0] - 2026-08-09
 
 ### Added

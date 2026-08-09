@@ -115,8 +115,8 @@ export class BaseFormView extends BasesView {
 				properties,
 				fieldTypes,
 				settings.showFileName,
-				settings.showOnlyEmptyInputs,
-				settings.showOnlyExistingInputs,
+				settings.hideNonEmptyProperties,
+				settings.hideNonExistentProperties,
 			);
 		});
 
@@ -135,8 +135,8 @@ export class BaseFormView extends BasesView {
 		properties: BasesPropertyId[],
 		fieldTypes: Map<BasesPropertyId, FormFieldType>,
 		showFileName: boolean,
-		showOnlyEmptyInputs: boolean,
-		showOnlyExistingInputs: boolean,
+		hideNonEmptyProperties: boolean,
+		hideNonExistentProperties: boolean,
 	): void {
 		const cardEl = parentEl.createEl('article', { cls: 'base-form-entry' });
 		if (showFileName) {
@@ -167,15 +167,17 @@ export class BaseFormView extends BasesView {
 
 		const fieldsEl = cardEl.createDiv({ cls: 'base-form-fields' });
 		properties.forEach((propertyId, propertyIndex) => {
+			const property = parsePropertyId(propertyId);
 			this.renderProperty(
 				fieldsEl,
 				entry,
 				entryIndex,
 				propertyIndex,
 				propertyId,
+				property.type,
 				fieldTypes.get(propertyId) ?? 'text',
-				showOnlyEmptyInputs,
-				showOnlyExistingInputs,
+				hideNonEmptyProperties,
+				hideNonExistentProperties,
 			);
 		});
 	}
@@ -186,9 +188,10 @@ export class BaseFormView extends BasesView {
 		entryIndex: number,
 		propertyIndex: number,
 		propertyId: BasesPropertyId,
+		propertyType: 'note' | 'file' | 'formula',
 		fieldType: FormFieldType,
-		showOnlyEmptyInputs: boolean,
-		showOnlyExistingInputs: boolean,
+		hideNonEmptyProperties: boolean,
+		hideNonExistentProperties: boolean,
 	): void {
 		const property = parsePropertyId(propertyId);
 		const displayName = this.config.getDisplayName(propertyId);
@@ -199,9 +202,9 @@ export class BaseFormView extends BasesView {
 				: undefined;
 
 		if (
-			!shouldRenderPropertyInput(fieldType, rawValue, value, {
-				showOnlyEmptyInputs,
-				showOnlyExistingInputs,
+			!shouldRenderPropertyInput(fieldType, propertyType, rawValue, value, {
+				hideNonEmptyProperties,
+				hideNonExistentProperties,
 			})
 		) {
 			return;

@@ -51,6 +51,7 @@ views:
     itemSpacing: 8
     formWidth: 80
     showOnlyEmptyInputs: true
+    hideNonEmptyProperties: true
   - type: base-form
     name: Existing Properties Only
     order:
@@ -68,6 +69,8 @@ views:
     formWidth: 80
     showOnlyEmptyInputs: true
     showOnlyExistingInputs: true
+    hideNonEmptyProperties: true
+    hideNonExistentProperties: true
   - type: base-form
     name: This - Form
     filters:

@@ -140,19 +140,24 @@ export function isEmptyPropertyValue(
 
 export function shouldRenderPropertyInput(
 	type: FormFieldType,
+	propertyType: 'note' | 'file' | 'formula',
 	rawValue: unknown,
 	value: Value | null,
 	options: {
-		showOnlyEmptyInputs: boolean;
-		showOnlyExistingInputs: boolean;
+		hideNonEmptyProperties: boolean;
+		hideNonExistentProperties: boolean;
 	},
 ): boolean {
-	if (options.showOnlyExistingInputs && rawValue === undefined) {
+	if (propertyType !== 'note') {
+		return true;
+	}
+
+	if (options.hideNonExistentProperties && rawValue === undefined) {
 		return false;
 	}
 
 	if (
-		options.showOnlyEmptyInputs &&
+		options.hideNonEmptyProperties &&
 		!isEmptyPropertyValue(type, rawValue, value)
 	) {
 		return false;

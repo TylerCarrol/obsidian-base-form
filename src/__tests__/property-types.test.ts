@@ -7,26 +7,28 @@ describe('empty property detection', () => {
 		expect(
 			shouldRenderPropertyInput(
 				'text',
+				'note',
 				undefined,
 				{
 					toString: () => '',
 				} as never,
 				{
-					showOnlyEmptyInputs: true,
-					showOnlyExistingInputs: false,
+					hideNonEmptyProperties: true,
+					hideNonExistentProperties: false,
 				},
 			),
 		).toBe(true);
 		expect(
 			shouldRenderPropertyInput(
 				'list',
+				'note',
 				undefined,
 				{
 					toString: () => 'Alpha\nBeta',
 				} as never,
 				{
-					showOnlyEmptyInputs: true,
-					showOnlyExistingInputs: false,
+					hideNonEmptyProperties: true,
+					hideNonExistentProperties: false,
 				},
 			),
 		).toBe(false);
@@ -36,22 +38,24 @@ describe('empty property detection', () => {
 		expect(
 			shouldRenderPropertyInput(
 				'checkbox',
+				'note',
 				false,
 				null,
 				{
-					showOnlyEmptyInputs: true,
-					showOnlyExistingInputs: false,
+					hideNonEmptyProperties: true,
+					hideNonExistentProperties: false,
 				},
 			),
 		).toBe(true);
 		expect(
 			shouldRenderPropertyInput(
 				'checkbox',
+				'note',
 				true,
 				null,
 				{
-					showOnlyEmptyInputs: true,
-					showOnlyExistingInputs: false,
+					hideNonEmptyProperties: true,
+					hideNonExistentProperties: false,
 				},
 			),
 		).toBe(false);
@@ -61,26 +65,28 @@ describe('empty property detection', () => {
 		expect(
 			shouldRenderPropertyInput(
 				'text',
+				'note',
 				undefined,
 				{
 					toString: () => '',
 				} as never,
 				{
-					showOnlyEmptyInputs: false,
-					showOnlyExistingInputs: true,
+					hideNonEmptyProperties: false,
+					hideNonExistentProperties: true,
 				},
 			),
 		).toBe(false);
 		expect(
 			shouldRenderPropertyInput(
 				'text',
+				'note',
 				'',
 				{
 					toString: () => '',
 				} as never,
 				{
-					showOnlyEmptyInputs: false,
-					showOnlyExistingInputs: true,
+					hideNonEmptyProperties: false,
+					hideNonExistentProperties: true,
 				},
 			),
 		).toBe(true);
@@ -90,26 +96,45 @@ describe('empty property detection', () => {
 		expect(
 			shouldRenderPropertyInput(
 				'text',
+				'note',
 				undefined,
 				{
 					toString: () => '',
 				} as never,
 				{
-					showOnlyEmptyInputs: true,
-					showOnlyExistingInputs: true,
+					hideNonEmptyProperties: true,
+					hideNonExistentProperties: true,
 				},
 			),
 		).toBe(false);
 		expect(
 			shouldRenderPropertyInput(
 				'text',
+				'note',
 				'',
 				{
 					toString: () => '',
 				} as never,
 				{
-					showOnlyEmptyInputs: true,
-					showOnlyExistingInputs: true,
+					hideNonEmptyProperties: true,
+					hideNonExistentProperties: true,
+				},
+			),
+		).toBe(true);
+	});
+
+	it('leaves formula properties alone', () => {
+		expect(
+			shouldRenderPropertyInput(
+				'text',
+				'formula',
+				undefined,
+				{
+					toString: () => '',
+				} as never,
+				{
+					hideNonEmptyProperties: true,
+					hideNonExistentProperties: true,
 				},
 			),
 		).toBe(true);

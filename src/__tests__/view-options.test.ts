@@ -19,17 +19,30 @@ describe('form view settings', () => {
 		expect(
 			readSettings({
 				showFileName: false,
-				showOnlyEmptyInputs: true,
-				showOnlyExistingInputs: true,
+				hideNonEmptyProperties: true,
+				hideNonExistentProperties: true,
 				itemSpacing: 12,
 				formWidth: 40,
 			}),
 		).toEqual({
 			showFileName: false,
-			showOnlyEmptyInputs: true,
-			showOnlyExistingInputs: true,
+			hideNonEmptyProperties: true,
+			hideNonExistentProperties: true,
 			itemSpacing: 12,
 			formWidth: 40,
+		});
+	});
+
+	it('keeps backwards compatibility with the old setting names', () => {
+		expect(
+			readSettings({
+				showOnlyEmptyInputs: true,
+				showOnlyExistingInputs: true,
+			}),
+		).toEqual({
+			...DEFAULT_FORM_VIEW_SETTINGS,
+			hideNonEmptyProperties: true,
+			hideNonExistentProperties: true,
 		});
 	});
 
@@ -47,8 +60,8 @@ describe('form view settings', () => {
 		expect(
 			readSettings({
 				showFileName: 'false',
-				showOnlyEmptyInputs: 'true',
-				showOnlyExistingInputs: 'true',
+				hideNonEmptyProperties: 'true',
+				hideNonExistentProperties: 'true',
 				itemSpacing: '12',
 			}),
 		).toEqual(DEFAULT_FORM_VIEW_SETTINGS);
