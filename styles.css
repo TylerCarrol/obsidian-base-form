@@ -96,7 +96,7 @@ textarea.base-form-control {
 	align-items: center;
 	gap: var(--size-2-2);
 	min-height: var(--input-height);
-	padding: var(--size-2-1);
+	padding-left: var(--size-2-2);
 	border: 1px solid var(--background-modifier-border);
 	border-radius: var(--input-radius);
 	background: var(--background-primary-alt);
@@ -117,10 +117,7 @@ textarea.base-form-control {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--size-2-1);
-	padding: 0.1rem 0.35rem 0.1rem 0.45rem;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: 999px;
-	background: var(--background-secondary);
+	padding: 0.1rem 0;
 	color: var(--text-normal);
 	font-size: var(--font-ui-smaller);
 	line-height: 1.35;
@@ -207,18 +204,20 @@ textarea.base-form-control {
 	outline: none;
 }
 
-.base-form-list-input {
+.base-form-list-control .base-form-list-input {
 	flex: 1 1 8rem;
 	min-width: 8rem;
 	padding: 0.1rem 0.25rem;
 	border: 0;
+	border-radius: 0;
 	outline: 0;
 	background: transparent;
+	box-shadow: none;
 	color: var(--text-normal);
 	font: inherit;
 }
 
-.base-form-list-input::placeholder {
+.base-form-list-control .base-form-list-input::placeholder {
 	color: var(--text-faint);
 }
 
