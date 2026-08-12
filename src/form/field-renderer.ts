@@ -19,11 +19,16 @@ import type { FormInputSuggest } from './input-suggest';
 
 export type FormControl = HTMLInputElement | HTMLTextAreaElement;
 
+interface DeletePropertyAction {
+	onClick: () => void;
+}
+
 interface EditableFieldOptions {
 	app: App;
 	controlId: string;
 	displayName: string;
 	draftValue?: FormControlValue;
+	deleteAction?: DeletePropertyAction;
 	fieldEl: HTMLElement;
 	fieldType: FormFieldType;
 	filePath: string;
@@ -34,11 +39,33 @@ interface EditableFieldOptions {
 	value: Value | null;
 }
 
+function renderDeleteButton(
+	containerEl: HTMLElement,
+	displayName: string,
+	deleteAction?: DeletePropertyAction,
+): void {
+	if (deleteAction === undefined) {
+		return;
+	}
+	const deleteButton = containerEl.createEl('button', {
+		cls: 'base-form-delete-property',
+		text: 'Delete',
+	});
+	deleteButton.type = 'button';
+	deleteButton.ariaLabel = `Delete ${displayName} property`;
+	deleteButton.addEventListener('click', (event) => {
+		event.preventDefault();
+		event.stopPropagation();
+		deleteAction.onClick();
+	});
+}
+
 export function renderEditableField({
 	app,
 	controlId,
 	displayName,
 	draftValue,
+	deleteAction,
 	fieldEl,
 	fieldType,
 	filePath,
@@ -50,19 +77,21 @@ export function renderEditableField({
 }: EditableFieldOptions): FormInputSuggest | null {
 	const labelEl = fieldEl.createEl('label', {
 		cls: 'base-form-field-label',
-		text: displayName,
 	});
+	labelEl.createSpan({ text: displayName });
 
+	const fieldBodyEl = fieldEl.createDiv({ cls: 'base-form-field-body' });
 	const fallback = getValueFallback(fieldType, value);
 	const { control, focusControl, inputSuggest } = createControl(
 		app,
-		fieldEl,
+		fieldBodyEl,
 		fieldType,
 		draftValue ??
 			formatFormValue(fieldType, rawValue, fallback),
 		sourcePath,
 		listSuggestions,
 	);
+	renderDeleteButton(fieldBodyEl, displayName, deleteAction);
 	control.id = controlId;
 	const focusId =
 		focusControl === control ? controlId : `${controlId}-editor`;
@@ -94,6 +123,7 @@ export function renderReadOnlyField(
 	displayName: string,
 	sourcePath: string,
 	value: Value | null,
+	deleteAction?: DeletePropertyAction,
 ): void {
 	fieldEl.addClass('is-read-only');
 	const labelEl = fieldEl.createDiv({ cls: 'base-form-field-label' });
@@ -103,7 +133,9 @@ export function renderReadOnlyField(
 		text: 'Read only',
 	});
 
-	const valueEl = fieldEl.createDiv({ cls: 'base-form-read-only-value' });
+	const fieldBodyEl = fieldEl.createDiv({ cls: 'base-form-field-body' });
+	const valueEl = fieldBodyEl.createDiv({ cls: 'base-form-read-only-value' });
+	renderDeleteButton(fieldBodyEl, displayName, deleteAction);
 	if (value === null || value === NullValue.value) {
 		valueEl.setText('Not set');
 		return;

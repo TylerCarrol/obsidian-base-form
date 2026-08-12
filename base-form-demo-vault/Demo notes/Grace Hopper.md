@@ -1,7 +1,7 @@
 ---
 baseform: true
 full-name: Grace Hopper
-interests:
+interests: []
 reference: "[[Ada Lovelace]]"
 score:
 related-notes:

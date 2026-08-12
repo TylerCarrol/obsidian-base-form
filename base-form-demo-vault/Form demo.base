@@ -71,6 +71,7 @@ views:
     showOnlyExistingInputs: true
     hideNonEmptyProperties: true
     hideNonExistentProperties: true
+    enableDeletePropertyButton: true
   - type: base-form
     name: This - Form
     filters:

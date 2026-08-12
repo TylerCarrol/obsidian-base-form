@@ -5,6 +5,7 @@ const HIDE_NON_EMPTY_PROPERTIES_KEY = 'hideNonEmptyProperties';
 const HIDE_NON_EXISTENT_PROPERTIES_KEY = 'hideNonExistentProperties';
 const SHOW_ONLY_EMPTY_INPUTS_KEY = 'showOnlyEmptyInputs';
 const SHOW_ONLY_EXISTING_INPUTS_KEY = 'showOnlyExistingInputs';
+const ENABLE_DELETE_PROPERTY_BUTTON_KEY = 'enableDeletePropertyButton';
 const ITEM_SPACING_KEY = 'itemSpacing';
 const FORM_WIDTH_KEY = 'formWidth';
 const MIN_ITEM_SPACING = 0;
@@ -16,6 +17,7 @@ export interface FormViewSettings {
 	showFileName: boolean;
 	hideNonEmptyProperties: boolean;
 	hideNonExistentProperties: boolean;
+	enableDeletePropertyButton: boolean;
 	itemSpacing: number;
 	formWidth: number;
 }
@@ -24,6 +26,7 @@ export const DEFAULT_FORM_VIEW_SETTINGS: FormViewSettings = {
 	showFileName: true,
 	hideNonEmptyProperties: false,
 	hideNonExistentProperties: false,
+	enableDeletePropertyButton: false,
 	itemSpacing: 8,
 	formWidth: 52,
 };
@@ -47,6 +50,12 @@ export function getFormViewOptions(): BasesAllOptions[] {
 			key: HIDE_NON_EXISTENT_PROPERTIES_KEY,
 			displayName: 'Hide non-existent properties',
 			default: DEFAULT_FORM_VIEW_SETTINGS.hideNonExistentProperties,
+		},
+		{
+			type: 'toggle',
+			key: ENABLE_DELETE_PROPERTY_BUTTON_KEY,
+			displayName: 'Enable delete property button',
+			default: DEFAULT_FORM_VIEW_SETTINGS.enableDeletePropertyButton,
 		},
 		{
 			type: 'slider',
@@ -81,6 +90,8 @@ export function getFormViewSettings(
 	const hideNonExistentProperties =
 		config.get(HIDE_NON_EXISTENT_PROPERTIES_KEY) ??
 		config.get(SHOW_ONLY_EXISTING_INPUTS_KEY);
+	const enableDeletePropertyButton =
+		config.get(ENABLE_DELETE_PROPERTY_BUTTON_KEY);
 	const itemSpacing = config.get(ITEM_SPACING_KEY);
 	const formWidth = config.get(FORM_WIDTH_KEY);
 
@@ -97,6 +108,10 @@ export function getFormViewSettings(
 			typeof hideNonExistentProperties === 'boolean'
 				? hideNonExistentProperties
 				: DEFAULT_FORM_VIEW_SETTINGS.hideNonExistentProperties,
+		enableDeletePropertyButton:
+			typeof enableDeletePropertyButton === 'boolean'
+				? enableDeletePropertyButton
+				: DEFAULT_FORM_VIEW_SETTINGS.enableDeletePropertyButton,
 		itemSpacing:
 			typeof itemSpacing === 'number' && Number.isFinite(itemSpacing)
 				? Math.min(

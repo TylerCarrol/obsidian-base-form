@@ -1,5 +1,6 @@
 import {
 	BasesView,
+	ConfirmationModal,
 	Notice,
 	parsePropertyId,
 } from 'obsidian';
@@ -133,6 +134,7 @@ export class BaseFormView extends BasesView {
 				settings.showFileName,
 				settings.hideNonEmptyProperties,
 				settings.hideNonExistentProperties,
+				settings.enableDeletePropertyButton,
 			);
 		});
 
@@ -153,6 +155,7 @@ export class BaseFormView extends BasesView {
 		showFileName: boolean,
 		hideNonEmptyProperties: boolean,
 		hideNonExistentProperties: boolean,
+		enableDeletePropertyButton: boolean,
 	): void {
 		const cardEl = parentEl.createEl('article', { cls: 'base-form-entry' });
 		if (showFileName) {
@@ -194,6 +197,7 @@ export class BaseFormView extends BasesView {
 				fieldTypes.get(propertyId) ?? 'text',
 				hideNonEmptyProperties,
 				hideNonExistentProperties,
+				enableDeletePropertyButton,
 			);
 		});
 	}
@@ -208,6 +212,7 @@ export class BaseFormView extends BasesView {
 		fieldType: FormFieldType,
 		hideNonEmptyProperties: boolean,
 		hideNonExistentProperties: boolean,
+		enableDeletePropertyButton: boolean,
 	): void {
 		const property = parsePropertyId(propertyId);
 		const displayName = this.config.getDisplayName(propertyId);
@@ -228,12 +233,33 @@ export class BaseFormView extends BasesView {
 
 		const fieldEl = parentEl.createDiv({ cls: 'base-form-field' });
 
+		const deleteAction =
+			enableDeletePropertyButton &&
+			property.type === 'note' &&
+			entry.file.extension === 'md'
+				? {
+						onClick: () => {
+							void this.deletePropertyFromFrontmatter(
+								entry.file,
+								property.name,
+							);
+						},
+					}
+				: undefined;
+
 		if (
 			property.type !== 'note' ||
 			entry.file.extension !== 'md' ||
 			!isEditablePropertyValue(fieldType, rawValue, value)
 		) {
-			renderReadOnlyField(this.app, fieldEl, displayName, entry.file.path, value);
+			renderReadOnlyField(
+				this.app,
+				fieldEl,
+				displayName,
+				entry.file.path,
+				value,
+				deleteAction,
+			);
 			return;
 		}
 
@@ -253,6 +279,7 @@ export class BaseFormView extends BasesView {
 					fieldType,
 				),
 			),
+			deleteAction,
 			fieldEl,
 			fieldType,
 			filePath: entry.file.path,
@@ -419,6 +446,43 @@ export class BaseFormView extends BasesView {
 		);
 		this.writeQueue = operation.catch(() => undefined);
 		return operation;
+	}
+
+	private async deletePropertyFromFrontmatter(
+		file: TFile,
+		propertyName: string,
+	): Promise<void> {
+		const modal = new ConfirmationModal(this.app);
+		modal.titleEl.setText('Delete property?');
+		modal.contentEl.setText(
+			`Delete the "${propertyName}" property from this note?`,
+		);
+		modal.addButton((button) => {
+			button.setButtonText('Delete');
+			button.setCta();
+			button.setDestructive();
+			button.onClick(async () => {
+				modal.close();
+				try {
+					await this.writeQueue.then(() =>
+						this.app.fileManager.processFrontMatter(
+							file,
+							(frontmatter: Record<string, unknown>) => {
+								const key = findFrontmatterKey(frontmatter, propertyName);
+								if (key in frontmatter) {
+									delete frontmatter[key];
+								}
+							},
+						),
+					);
+					this.render();
+				} catch {
+					new Notice('Could not delete the property.');
+				}
+			});
+		});
+		modal.addCancelButton('Cancel');
+		modal.open();
 	}
 
 	private setControlStatus(

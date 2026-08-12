@@ -15,7 +15,7 @@ describe('form view settings', () => {
 		expect(readSettings({})).toEqual(DEFAULT_FORM_VIEW_SETTINGS);
 	});
 
-	it('reads filename visibility, empty-input filtering, item spacing, and form width', () => {
+	it('reads filename visibility, empty-input filtering, item spacing, form width, and delete-button visibility', () => {
 		expect(
 			readSettings({
 				showFileName: false,
@@ -23,6 +23,7 @@ describe('form view settings', () => {
 				hideNonExistentProperties: true,
 				itemSpacing: 12,
 				formWidth: 40,
+				enableDeletePropertyButton: true,
 			}),
 		).toEqual({
 			showFileName: false,
@@ -30,6 +31,7 @@ describe('form view settings', () => {
 			hideNonExistentProperties: true,
 			itemSpacing: 12,
 			formWidth: 40,
+			enableDeletePropertyButton: true,
 		});
 	});
 
@@ -63,6 +65,7 @@ describe('form view settings', () => {
 				hideNonEmptyProperties: 'true',
 				hideNonExistentProperties: 'true',
 				itemSpacing: '12',
+				enableDeletePropertyButton: 'true',
 			}),
 		).toEqual(DEFAULT_FORM_VIEW_SETTINGS);
 	});

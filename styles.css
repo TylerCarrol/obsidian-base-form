@@ -81,6 +81,47 @@
 	font-weight: var(--font-semibold);
 }
 
+.base-form-field-body {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+}
+
+.base-form-field-body > *:first-child:not(input[type='checkbox']) {
+	flex: 1 1 auto;
+}
+
+.base-form-field-body:has(input[type='checkbox']) {
+	justify-content: space-between;
+}
+
+.base-form-field-body:has(input[type='checkbox']) .base-form-delete-property {
+	margin-left: auto;
+}
+
+.base-form-delete-property {
+	flex-shrink: 0;
+	padding: 0.1rem 0.5rem;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-medium);
+	cursor: pointer;
+}
+
+.base-form-delete-property:hover,
+.base-form-delete-property:focus,
+.base-form-delete-property:focus-visible,
+.base-form-delete-property:active {
+	border-color: var(--background-modifier-border-hover);
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+	box-shadow: none;
+}
+
 .base-form-control:not([type='checkbox']) {
 	width: 100%;
 }
@@ -92,9 +133,11 @@ textarea.base-form-control {
 
 .base-form-list-control {
 	display: flex;
+	flex: 1 1 auto;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--size-2-2);
+	width: 100%;
 	min-height: var(--input-height);
 	padding-left: var(--size-2-2);
 	border: 1px solid var(--background-modifier-border);
@@ -205,8 +248,8 @@ textarea.base-form-control {
 }
 
 .base-form-list-control .base-form-list-input {
-	flex: 1 1 8rem;
-	min-width: 8rem;
+	flex: 1 1 12rem;
+	min-width: 12rem;
 	padding: 0.1rem 0.25rem;
 	border: 0;
 	border-radius: 0;
