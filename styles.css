@@ -19,6 +19,41 @@
 	gap: var(--base-form-item-spacing);
 }
 
+.base-form-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--base-form-item-spacing);
+}
+
+.base-form-group-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35rem;
+	margin: 0;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-semibold);
+}
+
+.base-form-group-label,
+.base-form-group-separator {
+	color: var(--text-muted);
+}
+
+.base-form-group-value {
+	display: inline-flex;
+	align-items: center;
+	color: var(--text-normal);
+}
+
+.base-form-group-checkbox {
+	margin: 0;
+	vertical-align: middle;
+	transform: translateX(1px);
+	accent-color: var(--interactive-accent);
+}
+
 .base-form-entry {
 	padding: var(--size-4-5);
 	border: 1px solid var(--background-modifier-border);

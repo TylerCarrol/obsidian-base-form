@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix grouping so it respects Bases `groupBy` configuration and renders grouped sections like the built-in Obsidian views.
+
 ## [0.6.0] - 2026-08-12
 
 ### Added

@@ -1,10 +1,12 @@
 import {
 	BasesView,
+	BooleanValue,
 	ConfirmationModal,
 	Notice,
 	parsePropertyId,
 } from 'obsidian';
 import type {
+	App,
 	BasesEntry,
 	BasesPropertyId,
 	QueryController,
@@ -36,6 +38,239 @@ import { getFormViewSettings } from './view-options';
 import { collectListPropertyValues } from './property-suggestions';
 
 export const BASE_FORM_VIEW_TYPE = 'base-form';
+
+export function getBaseFormGroupLabel(group: {
+	key?: unknown;
+	hasKey?: () => boolean;
+}): string {
+	if (group.hasKey !== undefined && !group.hasKey()) {
+		return 'No value';
+	}
+	if (group.key === undefined || group.key === null) {
+		return 'No value';
+	}
+	const valueText = String(group.key);
+	return valueText.trim().length > 0 ? valueText : 'No value';
+}
+
+export function getBaseFormGroupLabelParts(
+	group: {
+		key?: unknown;
+		hasKey?: () => boolean;
+	},
+	propertyLabel: string,
+): { label: string; valueText: string } {
+	if (group.hasKey !== undefined && !group.hasKey()) {
+		return { label: propertyLabel, valueText: 'No value' };
+	}
+	if (group.key === undefined || group.key === null) {
+		return { label: propertyLabel, valueText: 'No value' };
+	}
+	const valueText = String(group.key);
+	return {
+		label: propertyLabel,
+		valueText: valueText.trim().length > 0 ? valueText : 'No value',
+	};
+}
+
+export function isBooleanGroupValue(
+	value: unknown,
+): value is boolean | BooleanValue | 'true' | 'false' {
+	if (typeof value === 'boolean') {
+		return true;
+	}
+	if (value instanceof BooleanValue) {
+		return true;
+	}
+	if (typeof value === 'string') {
+		const normalized = value.trim().toLowerCase();
+		return normalized === 'true' || normalized === 'false';
+	}
+	return false;
+}
+
+function getBooleanGroupValue(value: unknown): boolean {
+	if (typeof value === 'boolean') {
+		return value;
+	}
+	if (value instanceof BooleanValue) {
+		return value.isTruthy();
+	}
+	if (typeof value === 'string') {
+		return value.trim().toLowerCase() === 'true';
+	}
+	return false;
+}
+
+function appendGroupText(container: HTMLElement, text: string): void {
+	const span = container.ownerDocument.createElement('span');
+	span.textContent = text;
+	container.appendChild(span);
+}
+
+function appendGroupLink(
+	container: HTMLElement,
+	label: string,
+	options: {
+		href?: string;
+		filePath?: string;
+		linkSubpath?: string;
+		target?: string;
+		rel?: string;
+	},
+): void {
+	const link = container.ownerDocument.createElement('a');
+	link.className = 'base-form-link';
+	link.textContent = label;
+	if (options.href !== undefined) {
+		link.href = options.href;
+	}
+	if (options.filePath !== undefined) {
+		link.dataset.filePath = options.filePath;
+	}
+	if (options.linkSubpath !== undefined) {
+		link.dataset.linkSubpath = options.linkSubpath;
+	}
+	if (options.target !== undefined) {
+		link.target = options.target;
+	}
+	if (options.rel !== undefined) {
+		link.rel = options.rel;
+	}
+	container.appendChild(link);
+}
+
+function appendGroupCheckbox(container: HTMLElement, checked: boolean): void {
+	const checkbox = container.ownerDocument.createElement('input');
+	checkbox.type = 'checkbox';
+	checkbox.checked = checked;
+	checkbox.disabled = true;
+	checkbox.className = 'base-form-group-checkbox';
+	container.appendChild(checkbox);
+}
+
+export function renderGroupValue(
+	container: HTMLElement,
+	app: App,
+	sourcePath: string,
+	value: unknown,
+): void {
+	if (isBooleanGroupValue(value)) {
+		appendGroupCheckbox(container, getBooleanGroupValue(value));
+		return;
+	}
+
+	const stringValue = String(value ?? '');
+	if (stringValue.trim() !== '' && hasGroupLinkSyntax(stringValue)) {
+		renderLinkGroupValue(container, app, sourcePath, stringValue);
+		return;
+	}
+
+	container.textContent = stringValue.trim().length > 0 ? stringValue : 'No value';
+}
+
+function hasGroupLinkSyntax(value: string): boolean {
+	return /\[\[([^\]|#]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]|\[[^\]]+\]\(([^)]+)\)/.test(value);
+}
+
+function renderLinkGroupValue(
+	container: HTMLElement,
+	app: App,
+	sourcePath: string,
+	value: string,
+): void {
+	const pattern = /\[\[([^\]|#]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
+	let cursor = 0;
+	for (;;) {
+		const match = pattern.exec(value);
+		if (match === null) {
+			break;
+		}
+
+		if (match.index > cursor) {
+			appendGroupText(container, value.slice(cursor, match.index));
+		}
+
+		if (match[1] !== undefined) {
+			const file = app.metadataCache.getFirstLinkpathDest(match[1], sourcePath);
+			if (file === null) {
+				appendGroupText(container, match[3] ?? match[1]);
+			} else {
+				appendGroupLink(container, match[3] ?? match[1], {
+					href: '#',
+					filePath: file.path,
+					linkSubpath: match[2] ?? undefined,
+				});
+			}
+		} else {
+			const label = match[4] ?? '';
+			const target = match[5] ?? '';
+			if (/^https?:\/\//i.test(target)) {
+				appendGroupLink(container, label, {
+					href: target,
+					target: '_blank',
+					rel: 'noopener noreferrer',
+				});
+				cursor = match.index + match[0].length;
+				continue;
+			}
+			const file = app.metadataCache.getFirstLinkpathDest(target, sourcePath);
+			if (file === null) {
+				appendGroupText(container, label);
+			} else {
+				appendGroupLink(container, label, {
+					href: '#',
+					filePath: file.path,
+				});
+			}
+		}
+
+		cursor = match.index + match[0].length;
+	}
+
+	if (cursor < value.length) {
+		appendGroupText(container, value.slice(cursor));
+	}
+
+	if (value.length === 0) {
+		appendGroupText(container, '');
+	}
+}
+
+export function inferGroupPropertyLabel(
+	groups: Array<{ key?: unknown; hasKey?: () => boolean; entries?: unknown[] }>,
+	entries: Array<{ getValue: (propertyId: any) => unknown }>,
+	candidateProperties: string[],
+): string {
+	const scores = new Map<string, number>();
+	for (const group of groups) {
+		if (group.hasKey !== undefined && !group.hasKey()) {
+			continue;
+		}
+		const key = group.key;
+		if (key === undefined || key === null) {
+			continue;
+		}
+		for (const entry of entries) {
+			for (const property of candidateProperties) {
+				const value = entry.getValue?.(property);
+				if (value !== undefined && value !== null && String(value) === String(key)) {
+					scores.set(property, (scores.get(property) ?? 0) + 1);
+				}
+			}
+		}
+	}
+	let bestProperty = candidateProperties[0] ?? 'Group';
+	let bestScore = -1;
+	for (const property of candidateProperties) {
+		const score = scores.get(property) ?? 0;
+		if (score > bestScore) {
+			bestProperty = property;
+			bestScore = score;
+		}
+	}
+	return bestScore > 0 ? bestProperty : bestProperty;
+}
 
 export class BaseFormView extends BasesView {
 	readonly type = BASE_FORM_VIEW_TYPE;
@@ -124,21 +359,69 @@ export class BaseFormView extends BasesView {
 		});
 
 		const formsEl = this.containerEl.createDiv({ cls: 'base-form-entries' });
-		entries.forEach((entry, entryIndex) => {
-			this.renderEntry(
-				formsEl,
-				entry,
-				entryIndex,
-				properties,
-				fieldTypes,
-				settings.showFileName,
-				settings.hideNonEmptyProperties,
-				settings.hideNonExistentProperties,
-				settings.enableDeletePropertyButton,
-			);
+		const groups = this.data.groupedData.length > 0 ? this.data.groupedData : [{ entries, hasKey: () => false }];
+		const groupPropertyLabel = this.getGroupPropertyLabel(groups, entries);
+		groups.forEach((group) => {
+			const groupEl = formsEl.createDiv({ cls: 'base-form-group' });
+			if (groups.length > 1 || group.hasKey?.()) {
+				const headerEl = groupEl.createDiv({ cls: 'base-form-group-header' });
+				const labelParts = getBaseFormGroupLabelParts(group, groupPropertyLabel);
+				headerEl.createSpan({ cls: 'base-form-group-label', text: labelParts.label });
+				const valueEl = headerEl.createSpan({ cls: 'base-form-group-value' });
+				const rawKey = group.key;
+				if (isBooleanGroupValue(rawKey)) {
+					const checkbox = valueEl.createEl('input', {
+						cls: 'base-form-group-checkbox',
+						attr: { type: 'checkbox' },
+					});
+					checkbox.checked = getBooleanGroupValue(rawKey);
+					checkbox.disabled = true;
+					checkbox.setAttribute('aria-label', labelParts.valueText);
+				} else {
+					renderGroupValue(valueEl, this.app, this.app.workspace.getActiveFile()?.path ?? '', rawKey);
+				}
+			}
+
+			group.entries.forEach((entry, entryIndex) => {
+				this.renderEntry(
+					groupEl,
+					entry,
+					entryIndex,
+					properties,
+					fieldTypes,
+					settings.showFileName,
+					settings.hideNonEmptyProperties,
+					settings.hideNonExistentProperties,
+					settings.enableDeletePropertyButton,
+				);
+			});
 		});
 
 		this.restorePendingFocus();
+	}
+
+	private getGroupPropertyLabel(
+		groups: Array<{ key?: unknown; hasKey?: () => boolean; entries?: unknown[] }>,
+		entries: BasesEntry[],
+	): string {
+		const candidateProperties = [
+			...this.data.properties,
+			...this.allProperties,
+		].filter((propertyId, index, array) => array.indexOf(propertyId) === index);
+		const inferred = inferGroupPropertyLabel(
+			groups,
+			entries as Array<{ getValue: (propertyId: any) => unknown }>,
+			candidateProperties,
+		);
+		if (inferred !== 'Group') {
+			return this.config.getDisplayName(inferred as BasesPropertyId);
+		}
+		for (const propertyId of candidateProperties) {
+			if (this.data.properties.includes(propertyId) || this.allProperties.includes(propertyId)) {
+				return this.config.getDisplayName(propertyId);
+			}
+		}
+		return 'Group';
 	}
 
 	private getVisibleProperties(): BasesPropertyId[] {

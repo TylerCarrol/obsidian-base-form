@@ -38,6 +38,9 @@ views:
     showOnlyEmptyInputs: false
   - type: base-form
     name: Empty Properties Only
+    groupBy:
+      property: featured
+      direction: ASC
     order:
       - full-name
       - interests
@@ -54,6 +57,9 @@ views:
     hideNonEmptyProperties: true
   - type: base-form
     name: Existing Properties Only
+    groupBy:
+      property: reference
+      direction: ASC
     order:
       - formula.Test
       - full-name
@@ -92,6 +98,9 @@ views:
     formWidth: 80
   - type: cards
     name: Cards
+    groupBy:
+      property: featured
+      direction: ASC
     order:
       - full-name
       - interests
