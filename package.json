@@ -1,6 +1,6 @@
 {
 	"name": "base-form",
-	"version": "0.6.1",
+	"version": "0.6.2",
 	"description": "BaseForm plugin for Obsidian (https://obsidian.md)",
 	"main": "main.js",
 	"type": "module",
