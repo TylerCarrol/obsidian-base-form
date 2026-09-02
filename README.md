@@ -1,5 +1,8 @@
 # BaseForm
 
+[![GitHub Release](https://img.shields.io/github/v/release/TylerCarrol/obsidian-base-form?logo=github&sort=semver)](https://github.com/TylerCarrol/obsidian-base-form/releases/latest) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/TylerCarrol/obsidian-base-form/blob/main/LICENSE) [![Lint](https://github.com/TylerCarrol/obsidian-base-form/actions/workflows/lint.yml/badge.svg)](https://github.com/TylerCarrol/obsidian-base-form/actions/workflows/lint.yml) [![Test](https://github.com/TylerCarrol/obsidian-base-form/actions/workflows/test.yml/badge.svg)](https://github.com/TylerCarrol/obsidian-base-form/actions/workflows/test.yml)
+[![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-yellow.svg)](https://buymeacoffee.com/tylercarrol)
+
 BaseForm adds an editable **Form** view to [Obsidian Bases](https://help.obsidian.md/bases). Each note is displayed as an interactable form, with the selected properties stacked vertically.
 
 ## Features
