@@ -15,7 +15,7 @@ describe('base form grouping', () => {
 				key: NullValue.value,
 				entries: [],
 				hasKey: () => false,
-			} as any),
+			}),
 		).toBe('No value');
 	});
 
@@ -25,7 +25,7 @@ describe('base form grouping', () => {
 				key: { toString: () => 'true' },
 				entries: [],
 				hasKey: () => true,
-			} as any),
+			}),
 		).toBe('true');
 	});
 
@@ -36,7 +36,7 @@ describe('base form grouping', () => {
 					key: { toString: () => 'true' },
 					entries: [],
 					hasKey: () => true,
-				} as any,
+				},
 				'Featured',
 			),
 		).toEqual({
@@ -95,11 +95,11 @@ describe('base form grouping', () => {
 					{ getValue: () => 10 },
 					{ getValue: () => 10 },
 					{ getValue: () => 20 },
-				] as any,
+				],
 				[
 					'file.size',
 					'note.featured',
-				] as any,
+				],
 			),
 		).toBe('file.size');
 	});

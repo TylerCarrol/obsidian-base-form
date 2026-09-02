@@ -39,9 +39,24 @@ import { collectListPropertyValues } from './property-suggestions';
 
 export const BASE_FORM_VIEW_TYPE = 'base-form';
 
+// `unknown` group keys/values may be plain objects, so avoid the default Object.prototype stringification.
+function stringifyUnknown(value: unknown): string {
+	if (value === null || value === undefined) {
+		return '';
+	}
+	if (typeof value === 'string') {
+		return value;
+	}
+	if (typeof value === 'number' || typeof value === 'boolean') {
+		return String(value);
+	}
+	return (value as { toString(): string }).toString();
+}
+
 export function getBaseFormGroupLabel(group: {
 	key?: unknown;
 	hasKey?: () => boolean;
+	entries?: unknown[];
 }): string {
 	if (group.hasKey !== undefined && !group.hasKey()) {
 		return 'No value';
@@ -49,7 +64,7 @@ export function getBaseFormGroupLabel(group: {
 	if (group.key === undefined || group.key === null) {
 		return 'No value';
 	}
-	const valueText = String(group.key);
+	const valueText = stringifyUnknown(group.key);
 	return valueText.trim().length > 0 ? valueText : 'No value';
 }
 
@@ -57,6 +72,7 @@ export function getBaseFormGroupLabelParts(
 	group: {
 		key?: unknown;
 		hasKey?: () => boolean;
+		entries?: unknown[];
 	},
 	propertyLabel: string,
 ): { label: string; valueText: string } {
@@ -66,7 +82,7 @@ export function getBaseFormGroupLabelParts(
 	if (group.key === undefined || group.key === null) {
 		return { label: propertyLabel, valueText: 'No value' };
 	}
-	const valueText = String(group.key);
+	const valueText = stringifyUnknown(group.key);
 	return {
 		label: propertyLabel,
 		valueText: valueText.trim().length > 0 ? valueText : 'No value',
@@ -160,7 +176,7 @@ export function renderGroupValue(
 		return;
 	}
 
-	const stringValue = String(value ?? '');
+	const stringValue = stringifyUnknown(value);
 	if (stringValue.trim() !== '' && hasGroupLinkSyntax(stringValue)) {
 		renderLinkGroupValue(container, app, sourcePath, stringValue);
 		return;
@@ -239,7 +255,7 @@ function renderLinkGroupValue(
 
 export function inferGroupPropertyLabel(
 	groups: Array<{ key?: unknown; hasKey?: () => boolean; entries?: unknown[] }>,
-	entries: Array<{ getValue: (propertyId: any) => unknown }>,
+	entries: Array<{ getValue(propertyId: string): unknown }>,
 	candidateProperties: string[],
 ): string {
 	const scores = new Map<string, number>();
@@ -253,8 +269,8 @@ export function inferGroupPropertyLabel(
 		}
 		for (const entry of entries) {
 			for (const property of candidateProperties) {
-				const value = entry.getValue?.(property);
-				if (value !== undefined && value !== null && String(value) === String(key)) {
+				const value = entry.getValue(property);
+				if (value !== undefined && value !== null && stringifyUnknown(value) === stringifyUnknown(key)) {
 					scores.set(property, (scores.get(property) ?? 0) + 1);
 				}
 			}
@@ -408,11 +424,7 @@ export class BaseFormView extends BasesView {
 			...this.data.properties,
 			...this.allProperties,
 		].filter((propertyId, index, array) => array.indexOf(propertyId) === index);
-		const inferred = inferGroupPropertyLabel(
-			groups,
-			entries as Array<{ getValue: (propertyId: any) => unknown }>,
-			candidateProperties,
-		);
+		const inferred = inferGroupPropertyLabel(groups, entries, candidateProperties);
 		if (inferred !== 'Group') {
 			return this.config.getDisplayName(inferred as BasesPropertyId);
 		}
