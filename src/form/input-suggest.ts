@@ -1,7 +1,7 @@
 import { AbstractInputSuggest } from 'obsidian';
 import type { App, TFile } from 'obsidian';
 
-interface LinkSuggestion {
+export interface LinkSuggestion {
 	file: TFile;
 	linkText: string;
 }
@@ -22,6 +22,7 @@ export class LinkInputSuggest extends AbstractInputSuggest<LinkSuggestion> {
 		private readonly inputEl: HTMLInputElement,
 		private readonly sourcePath: string,
 		onSelect?: () => void,
+		private readonly candidates: readonly LinkSuggestion[] = [],
 	) {
 		super(app, inputEl);
 		if (onSelect !== undefined) {
@@ -47,16 +48,7 @@ export class LinkInputSuggest extends AbstractInputSuggest<LinkSuggestion> {
 		}
 
 		const normalizedQuery = trigger.query.toLocaleLowerCase();
-		return this.app.vault
-			.getMarkdownFiles()
-			.map((file) => ({
-				file,
-				linkText: this.app.metadataCache.fileToLinktext(
-					file,
-					this.sourcePath,
-					true,
-				),
-			}))
+		return this.candidates
 			.filter(({ file, linkText }) => {
 				if (normalizedQuery === '') {
 					return true;
@@ -72,16 +64,16 @@ export class LinkInputSuggest extends AbstractInputSuggest<LinkSuggestion> {
 	}
 
 	renderSuggestion(suggestion: LinkSuggestion, el: HTMLElement): void {
-		const titleEl = el.ownerDocument.createElement('div');
-		titleEl.className = 'suggestion-title';
-		titleEl.textContent = suggestion.file.basename;
-		el.appendChild(titleEl);
+		el.createDiv({
+			cls: 'suggestion-title',
+			text: suggestion.file.basename,
+		});
 
 		if (suggestion.linkText !== suggestion.file.basename) {
-			const noteEl = el.ownerDocument.createElement('div');
-			noteEl.className = 'suggestion-note';
-			noteEl.textContent = suggestion.file.path;
-			el.appendChild(noteEl);
+			el.createDiv({
+				cls: 'suggestion-note',
+				text: suggestion.file.path,
+			});
 		}
 	}
 
@@ -230,5 +222,6 @@ function getListValueLabel(value: string): string {
 	}
 
 	const markdownLink = /^\[([^\]]+)\]\([^)]+\)$/.exec(value);
-	return markdownLink?.[1] ?? value;
+	const markdownLabel = markdownLink?.[1];
+	return typeof markdownLabel === 'string' ? markdownLabel : value;
 }

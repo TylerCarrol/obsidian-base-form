@@ -27,7 +27,7 @@ import {
 	renderReadOnlyField,
 } from './field-renderer';
 import type { FormControl } from './field-renderer';
-import type { FormInputSuggest } from './input-suggest';
+import type { FormInputSuggest, LinkSuggestion } from './input-suggest';
 import {
 	getRawValue,
 	isEditablePropertyValue,
@@ -119,9 +119,7 @@ function getBooleanGroupValue(value: unknown): boolean {
 }
 
 function appendGroupText(container: HTMLElement, text: string): void {
-	const span = container.ownerDocument.createElement('span');
-	span.textContent = text;
-	container.appendChild(span);
+	container.createSpan({ text });
 }
 
 function appendGroupLink(
@@ -135,9 +133,10 @@ function appendGroupLink(
 		rel?: string;
 	},
 ): void {
-	const link = container.ownerDocument.createElement('a');
-	link.className = 'base-form-link';
-	link.textContent = label;
+	const link = container.createEl('a', {
+		cls: 'base-form-link',
+		text: label,
+	});
 	if (options.href !== undefined) {
 		link.href = options.href;
 	}
@@ -157,12 +156,13 @@ function appendGroupLink(
 }
 
 function appendGroupCheckbox(container: HTMLElement, checked: boolean): void {
-	const checkbox = container.ownerDocument.createElement('input');
+	const checkbox = container.createEl('input', {
+		cls: 'base-form-group-checkbox',
+		attr: { type: 'checkbox' },
+	});
 	checkbox.type = 'checkbox';
 	checkbox.checked = checked;
 	checkbox.disabled = true;
-	checkbox.className = 'base-form-group-checkbox';
-	container.appendChild(checkbox);
 }
 
 export function renderGroupValue(
@@ -362,6 +362,7 @@ export class BaseFormView extends BasesView {
 		const fieldTypes = resolveFieldTypes(this.app, entries, properties);
 		this.listPropertyValues = collectListPropertyValues(
 			this.app,
+			entries,
 			properties.flatMap((propertyId) => {
 				const property = parsePropertyId(propertyId);
 				return property.type === 'note' && fieldTypes.get(propertyId) === 'list'
@@ -369,6 +370,14 @@ export class BaseFormView extends BasesView {
 					: [];
 			}),
 		);
+		const linkSuggestions: readonly LinkSuggestion[] = entries.map((entry) => ({
+			file: entry.file,
+			linkText: this.app.metadataCache.fileToLinktext(
+				entry.file,
+				entry.file.path,
+				true,
+			),
+		}));
 		this.containerEl.createDiv({
 			cls: 'base-form-summary',
 			text: `${entries.length} ${entries.length === 1 ? 'note' : 'notes'}`,
@@ -409,6 +418,7 @@ export class BaseFormView extends BasesView {
 					settings.hideNonEmptyProperties,
 					settings.hideNonExistentProperties,
 					settings.enableDeletePropertyButton,
+					linkSuggestions,
 				);
 			});
 		});
@@ -451,6 +461,7 @@ export class BaseFormView extends BasesView {
 		hideNonEmptyProperties: boolean,
 		hideNonExistentProperties: boolean,
 		enableDeletePropertyButton: boolean,
+		linkSuggestions: readonly LinkSuggestion[],
 	): void {
 		const cardEl = parentEl.createEl('article', { cls: 'base-form-entry' });
 		if (showFileName) {
@@ -493,6 +504,7 @@ export class BaseFormView extends BasesView {
 				hideNonEmptyProperties,
 				hideNonExistentProperties,
 				enableDeletePropertyButton,
+				linkSuggestions,
 			);
 		});
 	}
@@ -508,6 +520,7 @@ export class BaseFormView extends BasesView {
 		hideNonEmptyProperties: boolean,
 		hideNonExistentProperties: boolean,
 		enableDeletePropertyButton: boolean,
+		linkSuggestions: readonly LinkSuggestion[],
 	): void {
 		const property = parsePropertyId(propertyId);
 		const displayName = this.config.getDisplayName(propertyId);
@@ -582,6 +595,7 @@ export class BaseFormView extends BasesView {
 			rawValue,
 			listSuggestions:
 				this.listPropertyValues.get(property.name.toLocaleLowerCase()) ?? [],
+			linkSuggestions,
 			sourcePath: entry.file.path,
 			value,
 		});

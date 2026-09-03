@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { NullValue } from 'obsidian';
 import {
 	getBaseFormGroupLabel,
@@ -7,6 +7,32 @@ import {
 	isBooleanGroupValue,
 	renderGroupValue,
 } from '../form/form-view';
+
+beforeAll(() => {
+	const prototype = HTMLElement.prototype as unknown as {
+		createEl?: (tag: string, options?: { cls?: string; text?: string; attr?: Record<string, string> }) => HTMLElement;
+		createSpan?: (options?: { cls?: string; text?: string }) => HTMLElement;
+	};
+	if (prototype.createEl === undefined) {
+		prototype.createEl = function createEl(this: HTMLElement, tag, options): HTMLElement {
+			const element = document.createElement(tag);
+			if (options?.cls !== undefined) element.className = options.cls;
+			if (options?.text !== undefined) element.textContent = options.text;
+			if (options?.attr !== undefined) {
+				for (const [name, value] of Object.entries(options.attr)) {
+					element.setAttribute(name, value);
+				}
+			}
+			this.appendChild(element);
+			return element;
+		};
+	}
+	if (prototype.createSpan === undefined) {
+		prototype.createSpan = function createSpan(this: HTMLElement, options) {
+			return this.createEl?.('span', options);
+		};
+	}
+});
 
 describe('base form grouping', () => {
 	it('renders a friendly label for empty groups', () => {

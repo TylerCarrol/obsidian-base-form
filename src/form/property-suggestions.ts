@@ -1,7 +1,8 @@
-import type { App } from 'obsidian';
+import type { App, BasesEntry } from 'obsidian';
 
 export function collectListPropertyValues(
 	app: App,
+	entries: readonly BasesEntry[],
 	propertyNames: readonly string[],
 ): Map<string, readonly string[]> {
 	const requestedNames = new Set(
@@ -18,8 +19,8 @@ export function collectListPropertyValues(
 		seenValues.set(propertyName, new Set());
 	}
 
-	for (const file of app.vault.getMarkdownFiles()) {
-		const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter;
+	for (const entry of entries) {
+		const frontmatter = app.metadataCache.getFileCache(entry.file)?.frontmatter;
 		if (frontmatter === undefined) {
 			continue;
 		}

@@ -126,11 +126,11 @@
 	flex: 1 1 auto;
 }
 
-.base-form-field-body:has(input[type='checkbox']) {
+.base-form-field-body.is-checkbox {
 	justify-content: space-between;
 }
 
-.base-form-field-body:has(input[type='checkbox']) .base-form-delete-property {
+.base-form-field-body.is-checkbox .base-form-delete-property {
 	margin-left: auto;
 }
 

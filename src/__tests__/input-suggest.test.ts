@@ -1,8 +1,29 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import {
 	LinkInputSuggest,
 	ListInputSuggest,
 } from '../form/input-suggest';
+
+beforeAll(() => {
+	const prototype = HTMLElement.prototype as unknown as {
+		createEl?: (tag: string, options?: { cls?: string; text?: string }) => HTMLElement;
+		createDiv?: (options?: { cls?: string; text?: string }) => HTMLElement;
+	};
+	if (prototype.createEl === undefined) {
+		prototype.createEl = function createEl(this: HTMLElement, tag, options): HTMLElement {
+			const element = document.createElement(tag);
+			if (options?.cls !== undefined) element.className = options.cls;
+			if (options?.text !== undefined) element.textContent = options.text;
+			this.appendChild(element);
+			return element;
+		};
+	}
+	if (prototype.createDiv === undefined) {
+		prototype.createDiv = function createDiv(this: HTMLElement, options) {
+			return this.createEl?.('div', options);
+		};
+	}
+});
 
 class TestLinkInputSuggest extends LinkInputSuggest {
 	getMatches(query: string) {
@@ -43,6 +64,11 @@ describe('form input suggestions', () => {
 			app,
 			input,
 			'Demo notes/Alan Turing.md',
+			undefined,
+			[
+				{ file: grace, linkText: 'Demo notes/Grace Hopper' },
+				{ file: ada, linkText: 'Demo notes/Ada Lovelace' },
+			],
 		);
 		const open = vi.spyOn(suggest, 'open');
 
@@ -72,6 +98,11 @@ describe('form input suggestions', () => {
 			app,
 			input,
 			'Demo notes/Alan Turing.md',
+			undefined,
+			[
+				{ file: grace, linkText: 'Demo notes/Grace Hopper' },
+				{ file: ada, linkText: 'Demo notes/Ada Lovelace' },
+			],
 		);
 
 		expect(suggest.getMatches(input.value)).toEqual([
@@ -95,6 +126,10 @@ describe('form input suggestions', () => {
 			input,
 			'Demo notes/Alan Turing.md',
 			onSelect,
+			[
+				{ file: grace, linkText: 'Demo notes/Grace Hopper' },
+				{ file: ada, linkText: 'Demo notes/Ada Lovelace' },
+			],
 		);
 		const suggestionEl = document.createElement('div');
 		const event = new KeyboardEvent('keydown', { key: 'Enter' });
@@ -127,6 +162,11 @@ describe('form input suggestions', () => {
 			app,
 			input,
 			'Demo notes/Alan Turing.md',
+			undefined,
+			[
+				{ file: grace, linkText: 'Demo notes/Grace Hopper' },
+				{ file: ada, linkText: 'Demo notes/Ada Lovelace' },
+			],
 		);
 
 		suggest.selectSuggestion(

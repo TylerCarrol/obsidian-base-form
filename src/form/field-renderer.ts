@@ -15,7 +15,7 @@ import {
 	LinkInputSuggest,
 	ListInputSuggest,
 } from './input-suggest';
-import type { FormInputSuggest } from './input-suggest';
+import type { FormInputSuggest, LinkSuggestion } from './input-suggest';
 
 export type FormControl = HTMLInputElement | HTMLTextAreaElement;
 
@@ -33,6 +33,7 @@ interface EditableFieldOptions {
 	fieldType: FormFieldType;
 	filePath: string;
 	listSuggestions?: readonly string[];
+	linkSuggestions?: readonly LinkSuggestion[];
 	propertyName: string;
 	rawValue: unknown;
 	sourcePath: string;
@@ -70,6 +71,7 @@ export function renderEditableField({
 	fieldType,
 	filePath,
 	listSuggestions = [],
+	linkSuggestions = [],
 	propertyName,
 	rawValue,
 	sourcePath,
@@ -80,7 +82,9 @@ export function renderEditableField({
 	});
 	labelEl.createSpan({ text: displayName });
 
-	const fieldBodyEl = fieldEl.createDiv({ cls: 'base-form-field-body' });
+	const fieldBodyEl = fieldEl.createDiv({
+		cls: `base-form-field-body${fieldType === 'checkbox' ? ' is-checkbox' : ''}`,
+	});
 	const fallback = getValueFallback(fieldType, value);
 	const { control, focusControl, inputSuggest } = createControl(
 		app,
@@ -90,6 +94,7 @@ export function renderEditableField({
 			formatFormValue(fieldType, rawValue, fallback),
 		sourcePath,
 		listSuggestions,
+		linkSuggestions,
 	);
 	renderDeleteButton(fieldBodyEl, displayName, deleteAction);
 	control.id = controlId;
@@ -169,6 +174,7 @@ function createControl(
 	value: FormControlValue,
 	sourcePath: string,
 	listSuggestions: readonly string[],
+	linkSuggestions: readonly LinkSuggestion[],
 ): CreatedControl {
 	if (fieldType === 'list') {
 		return createListControl(
@@ -236,7 +242,7 @@ function createControl(
 		control: input,
 		focusControl: input,
 		inputSuggest: shouldEnableLinkSuggestions(fieldType)
-			? new LinkInputSuggest(app, input, sourcePath)
+			? new LinkInputSuggest(app, input, sourcePath, undefined, linkSuggestions)
 			: null,
 	};
 }

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Addressed various warnings for DOM helpers, unsafe suggestion values, CSS selectors, and vault-wide file enumeration.
+
 ## [0.6.3] - 2026-09-03
 
 ### Changed
