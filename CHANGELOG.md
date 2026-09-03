@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-09-03
+
 ### Fixed
 
 - Addressed various warnings for DOM helpers, unsafe suggestion values, CSS selectors, and vault-wide file enumeration.
@@ -78,7 +80,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add per-view file name visibility, empty-input filtering, item spacing, and form width options.
 - Add a demo base and sample notes covering each supported property type.
 
-[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.6.3...HEAD
+[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.6.4...HEAD
+
+[0.6.4]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.6.3...v0.6.4
 
 [0.6.3]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.6.2...v0.6.3
 
