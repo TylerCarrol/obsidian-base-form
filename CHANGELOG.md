@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-04
+
 ### Added
 
 - Add an optional manual submit button for forms that show only empty properties.
@@ -88,7 +90,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add per-view file name visibility, empty-input filtering, item spacing, and form width options.
 - Add a demo base and sample notes covering each supported property type.
 
-[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.6.4...HEAD
+[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.7.0...HEAD
+
+[0.7.0]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.6.4...v0.7.0
 
 [0.6.4]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.6.3...v0.6.4
 
