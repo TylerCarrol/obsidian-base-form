@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add an optional manual submit button for forms that show only empty properties.
 
+### Fixed
+
+- Resolve unsafe return and call warnings in suggestion label parsing.
+
 ## [0.6.4] - 2026-09-03
 
 ### Fixed

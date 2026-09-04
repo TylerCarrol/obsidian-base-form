@@ -216,9 +216,13 @@ function getListValueLabel(value: string): string {
 		value,
 	);
 	if (wikilink !== null) {
-		const target = wikilink[1] ?? value;
+		const targetCapture: unknown = wikilink[1];
+		const target = typeof targetCapture === 'string' ? targetCapture : value;
 		const pathParts = target.replace(/\.md$/i, '').split('/');
-		return wikilink[2] ?? pathParts.at(-1) ?? target;
+		const labelCapture: unknown = wikilink[2];
+		return typeof labelCapture === 'string'
+			? labelCapture
+			: pathParts.at(-1) ?? target;
 	}
 
 	const markdownLink = /^\[([^\]]+)\]\([^)]+\)$/.exec(value);
