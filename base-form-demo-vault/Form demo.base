@@ -55,6 +55,9 @@ views:
     formWidth: 80
     showOnlyEmptyInputs: true
     hideNonEmptyProperties: true
+    manualSubmit: true
+    submitButtonName: Submit
+    submitButtonPosition: bottom-each-note
   - type: base-form
     name: Existing Properties Only
     groupBy:

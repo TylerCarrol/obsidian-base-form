@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add an optional manual submit button for forms that show only empty properties.
+
 ## [0.6.4] - 2026-09-03
 
 ### Fixed

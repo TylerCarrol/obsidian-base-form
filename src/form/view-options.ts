@@ -3,6 +3,9 @@ import type { BasesAllOptions, BasesViewConfig } from 'obsidian';
 const SHOW_FILE_NAME_KEY = 'showFileName';
 const HIDE_NON_EMPTY_PROPERTIES_KEY = 'hideNonEmptyProperties';
 const HIDE_NON_EXISTENT_PROPERTIES_KEY = 'hideNonExistentProperties';
+const MANUAL_SUBMIT_KEY = 'manualSubmit';
+const SUBMIT_BUTTON_NAME_KEY = 'submitButtonName';
+const SUBMIT_BUTTON_POSITION_KEY = 'submitButtonPosition';
 const SHOW_ONLY_EMPTY_INPUTS_KEY = 'showOnlyEmptyInputs';
 const SHOW_ONLY_EXISTING_INPUTS_KEY = 'showOnlyExistingInputs';
 const ENABLE_DELETE_PROPERTY_BUTTON_KEY = 'enableDeletePropertyButton';
@@ -17,6 +20,14 @@ export interface FormViewSettings {
 	showFileName: boolean;
 	hideNonEmptyProperties: boolean;
 	hideNonExistentProperties: boolean;
+	manualSubmit: boolean;
+	submitButtonName: string;
+	submitButtonPosition:
+		| 'top'
+		| 'bottom'
+		| 'top-bottom'
+		| 'bottom-each-note'
+		| 'top-each-note';
 	enableDeletePropertyButton: boolean;
 	itemSpacing: number;
 	formWidth: number;
@@ -26,12 +37,22 @@ export const DEFAULT_FORM_VIEW_SETTINGS: FormViewSettings = {
 	showFileName: true,
 	hideNonEmptyProperties: false,
 	hideNonExistentProperties: false,
+	manualSubmit: false,
+	submitButtonName: 'Submit',
+	submitButtonPosition: 'bottom',
 	enableDeletePropertyButton: false,
 	itemSpacing: 8,
 	formWidth: 52,
 };
 
-export function getFormViewOptions(): BasesAllOptions[] {
+export function getFormViewOptions(
+	config: Pick<BasesViewConfig, 'get'>,
+): BasesAllOptions[] {
+	const hideSubmitOptions = () =>
+		!getFormViewSettings(config).hideNonEmptyProperties;
+	const hideSubmitButtonOptions = () =>
+		hideSubmitOptions() || !getFormViewSettings(config).manualSubmit;
+
 	return [
 		{
 			type: 'toggle',
@@ -40,22 +61,62 @@ export function getFormViewOptions(): BasesAllOptions[] {
 			default: DEFAULT_FORM_VIEW_SETTINGS.showFileName,
 		},
 		{
-			type: 'toggle',
-			key: HIDE_NON_EMPTY_PROPERTIES_KEY,
-			displayName: 'Hide non-empty properties',
-			default: DEFAULT_FORM_VIEW_SETTINGS.hideNonEmptyProperties,
+			type: 'group',
+			displayName: 'Data entry',
+			items: [
+				{
+					type: 'toggle',
+					key: HIDE_NON_EMPTY_PROPERTIES_KEY,
+					displayName: 'Hide non-empty properties',
+					default: DEFAULT_FORM_VIEW_SETTINGS.hideNonEmptyProperties,
+				},
+				{
+					type: 'toggle',
+					key: MANUAL_SUBMIT_KEY,
+					displayName: 'Manual submit',
+					default: DEFAULT_FORM_VIEW_SETTINGS.manualSubmit,
+					shouldHide: hideSubmitOptions,
+				},
+				{
+					type: 'text',
+					key: SUBMIT_BUTTON_NAME_KEY,
+					displayName: 'Submit button name',
+					default: DEFAULT_FORM_VIEW_SETTINGS.submitButtonName,
+					shouldHide: hideSubmitButtonOptions,
+				},
+				{
+					type: 'dropdown',
+					key: SUBMIT_BUTTON_POSITION_KEY,
+					displayName: 'Submit button position',
+					default: DEFAULT_FORM_VIEW_SETTINGS.submitButtonPosition,
+					options: {
+						top: 'Top',
+						bottom: 'Bottom',
+						'top-bottom': 'Top & Bottom',
+						'bottom-each-note': 'Bottom of Each Note',
+						'top-each-note': 'Top of Each Note',
+					},
+					shouldHide: hideSubmitButtonOptions,
+				},
+			],
 		},
 		{
-			type: 'toggle',
-			key: HIDE_NON_EXISTENT_PROPERTIES_KEY,
-			displayName: 'Hide non-existent properties',
-			default: DEFAULT_FORM_VIEW_SETTINGS.hideNonExistentProperties,
-		},
-		{
-			type: 'toggle',
-			key: ENABLE_DELETE_PROPERTY_BUTTON_KEY,
-			displayName: 'Enable delete property button',
-			default: DEFAULT_FORM_VIEW_SETTINGS.enableDeletePropertyButton,
+			type: 'group',
+			displayName: 'Existing properties',
+			items: [
+				{
+					type: 'toggle',
+					key: HIDE_NON_EXISTENT_PROPERTIES_KEY,
+					displayName: 'Hide non-existent properties',
+					default: DEFAULT_FORM_VIEW_SETTINGS.hideNonExistentProperties,
+				},
+				{
+					type: 'toggle',
+					key: ENABLE_DELETE_PROPERTY_BUTTON_KEY,
+					displayName: 'Enable delete property button',
+					default: DEFAULT_FORM_VIEW_SETTINGS.enableDeletePropertyButton,
+				},
+			],
 		},
 		{
 			type: 'slider',
@@ -90,6 +151,9 @@ export function getFormViewSettings(
 	const hideNonExistentProperties =
 		config.get(HIDE_NON_EXISTENT_PROPERTIES_KEY) ??
 		config.get(SHOW_ONLY_EXISTING_INPUTS_KEY);
+	const manualSubmit = config.get(MANUAL_SUBMIT_KEY);
+	const submitButtonName = config.get(SUBMIT_BUTTON_NAME_KEY);
+	const submitButtonPosition = config.get(SUBMIT_BUTTON_POSITION_KEY);
 	const enableDeletePropertyButton =
 		config.get(ENABLE_DELETE_PROPERTY_BUTTON_KEY);
 	const itemSpacing = config.get(ITEM_SPACING_KEY);
@@ -108,6 +172,22 @@ export function getFormViewSettings(
 			typeof hideNonExistentProperties === 'boolean'
 				? hideNonExistentProperties
 				: DEFAULT_FORM_VIEW_SETTINGS.hideNonExistentProperties,
+		manualSubmit:
+			typeof manualSubmit === 'boolean'
+				? manualSubmit
+				: DEFAULT_FORM_VIEW_SETTINGS.manualSubmit,
+		submitButtonName:
+			typeof submitButtonName === 'string' && submitButtonName.trim() !== ''
+				? submitButtonName
+				: DEFAULT_FORM_VIEW_SETTINGS.submitButtonName,
+		submitButtonPosition:
+			submitButtonPosition === 'top' ||
+			submitButtonPosition === 'bottom' ||
+			submitButtonPosition === 'top-bottom' ||
+			submitButtonPosition === 'bottom-each-note' ||
+			submitButtonPosition === 'top-each-note'
+				? submitButtonPosition
+				: DEFAULT_FORM_VIEW_SETTINGS.submitButtonPosition,
 		enableDeletePropertyButton:
 			typeof enableDeletePropertyButton === 'boolean'
 				? enableDeletePropertyButton

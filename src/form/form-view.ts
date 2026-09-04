@@ -35,6 +35,7 @@ import {
 	resolveFieldTypes,
 } from './property-types';
 import { getFormViewSettings } from './view-options';
+import type { FormViewSettings } from './view-options';
 import { collectListPropertyValues } from './property-suggestions';
 
 export const BASE_FORM_VIEW_TYPE = 'base-form';
@@ -382,6 +383,13 @@ export class BaseFormView extends BasesView {
 			cls: 'base-form-summary',
 			text: `${entries.length} ${entries.length === 1 ? 'note' : 'notes'}`,
 		});
+		if (
+			settings.manualSubmit &&
+			(settings.submitButtonPosition === 'top' ||
+				settings.submitButtonPosition === 'top-bottom')
+		) {
+			this.renderSubmitButton(this.containerEl, settings.submitButtonName);
+		}
 
 		const formsEl = this.containerEl.createDiv({ cls: 'base-form-entries' });
 		const groups = this.data.groupedData.length > 0 ? this.data.groupedData : [{ entries, hasKey: () => false }];
@@ -418,12 +426,37 @@ export class BaseFormView extends BasesView {
 					settings.hideNonEmptyProperties,
 					settings.hideNonExistentProperties,
 					settings.enableDeletePropertyButton,
+					settings.manualSubmit,
+					settings.submitButtonName,
+					settings.submitButtonPosition,
 					linkSuggestions,
 				);
 			});
 		});
+		if (
+			settings.manualSubmit &&
+			(settings.submitButtonPosition === 'bottom' ||
+				settings.submitButtonPosition === 'top-bottom')
+		) {
+			this.renderSubmitButton(this.containerEl, settings.submitButtonName);
+		}
 
 		this.restorePendingFocus();
+	}
+
+	private renderSubmitButton(
+		parentEl: HTMLElement,
+		name: string,
+		filePath?: string,
+	): void {
+		const button = parentEl.createEl('button', {
+			cls: 'base-form-submit',
+			text: name,
+		});
+		button.type = 'button';
+		button.addEventListener('click', () => {
+			void this.submitDrafts(filePath);
+		});
 	}
 
 	private getGroupPropertyLabel(
@@ -461,9 +494,15 @@ export class BaseFormView extends BasesView {
 		hideNonEmptyProperties: boolean,
 		hideNonExistentProperties: boolean,
 		enableDeletePropertyButton: boolean,
+		manualSubmit: boolean,
+		submitButtonName: string,
+		submitButtonPosition: FormViewSettings['submitButtonPosition'],
 		linkSuggestions: readonly LinkSuggestion[],
 	): void {
 		const cardEl = parentEl.createEl('article', { cls: 'base-form-entry' });
+		if (manualSubmit && submitButtonPosition === 'top-each-note') {
+			this.renderSubmitButton(cardEl, submitButtonName, entry.file.path);
+		}
 		if (showFileName) {
 			const headingId = this.getElementId('heading', entryIndex);
 			cardEl.setAttribute('aria-labelledby', headingId);
@@ -489,7 +528,6 @@ export class BaseFormView extends BasesView {
 			});
 			return;
 		}
-
 		const fieldsEl = cardEl.createDiv({ cls: 'base-form-fields' });
 		properties.forEach((propertyId, propertyIndex) => {
 			const property = parsePropertyId(propertyId);
@@ -507,6 +545,9 @@ export class BaseFormView extends BasesView {
 				linkSuggestions,
 			);
 		});
+		if (manualSubmit && submitButtonPosition === 'bottom-each-note') {
+			this.renderSubmitButton(cardEl, submitButtonName, entry.file.path);
+		}
 	}
 
 	private renderProperty(
@@ -613,6 +654,10 @@ export class BaseFormView extends BasesView {
 
 	private readonly handleClick = (event: MouseEvent): void => {
 		const target = event.target as Element | null;
+		if (target?.closest('.base-form-submit') !== null) {
+			event.preventDefault();
+			return;
+		}
 		const link = target?.closest<HTMLAnchorElement>(
 			'a[data-file-path]',
 		);
@@ -633,9 +678,44 @@ export class BaseFormView extends BasesView {
 		const control = this.getFormControl(event.target);
 		if (control !== null && control.dataset.fieldType !== undefined) {
 			this.rememberDraft(control);
-			void this.saveControl(control);
+			if (!getFormViewSettings(this.config).manualSubmit) {
+				void this.saveControl(control);
+			}
 		}
 	};
+
+	private async submitDrafts(submitFilePath?: string): Promise<void> {
+		const controls = Array.from(
+			this.containerEl.querySelectorAll<FormControl>(
+				'[data-field-type][data-file-path][data-property-name]',
+			),
+		);
+		for (const control of controls) {
+			const {
+				fieldType,
+				filePath: controlFilePath,
+				propertyName,
+			} = control.dataset;
+			if (
+				submitFilePath !== undefined &&
+				controlFilePath !== submitFilePath
+			) {
+				continue;
+			}
+			if (
+				fieldType === undefined ||
+				controlFilePath === undefined ||
+				propertyName === undefined ||
+				!isFormFieldType(fieldType) ||
+				!this.drafts.has(
+					this.getDraftKey(controlFilePath, propertyName, fieldType),
+				)
+			) {
+				continue;
+			}
+			await this.saveControl(control);
+		}
+	}
 
 	private readonly handleInput = (event: Event): void => {
 		const control = this.getFormControl(event.target);
