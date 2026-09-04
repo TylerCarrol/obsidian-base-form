@@ -226,6 +226,6 @@ function getListValueLabel(value: string): string {
 	}
 
 	const markdownLink = /^\[([^\]]+)\]\([^)]+\)$/.exec(value);
-	const markdownLabel = markdownLink?.[1];
+	const markdownLabel: unknown = markdownLink?.[1];
 	return typeof markdownLabel === 'string' ? markdownLabel : value;
 }
