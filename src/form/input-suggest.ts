@@ -222,7 +222,7 @@ function getListValueLabel(value: string): string {
 		const labelCapture: unknown = wikilink[2];
 		return typeof labelCapture === 'string'
 			? labelCapture
-			: pathParts.at(-1) ?? target;
+			: pathParts[pathParts.length - 1] ?? target;
 	}
 
 	const markdownLink = /^\[([^\]]+)\]\([^)]+\)$/.exec(value);
