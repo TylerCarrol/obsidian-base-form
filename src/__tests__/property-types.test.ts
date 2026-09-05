@@ -1,6 +1,37 @@
 import { describe, expect, it } from 'vitest';
+import { BooleanValue, StringValue } from 'obsidian';
 
-import { shouldRenderPropertyInput } from '../form/property-types';
+import {
+	shouldRenderByVisibilityCondition,
+	shouldRenderPropertyInput,
+} from '../form/property-types';
+
+function conditionalVisibility(
+	options: {
+		frontmatter?: Record<string, unknown>;
+		formulaValue?: unknown;
+		propertyName?: string;
+		prefix?: string;
+		mode?: 'show' | 'hide';
+	} = {},
+): boolean {
+	const formulaId = `formula.${options.prefix ?? 'show-'}${options.propertyName ?? 'score'}`;
+	return shouldRenderByVisibilityCondition(
+		{
+			metadataCache: {
+				getFileCache: () => ({ frontmatter: options.frontmatter ?? {} }),
+			},
+		} as never,
+		{
+			file: {},
+			getValue: (propertyId: string) =>
+				propertyId === formulaId ? options.formulaValue ?? null : null,
+		} as never,
+		options.propertyName ?? 'score',
+		options.prefix ?? 'show-',
+		options.mode ?? 'show',
+	);
+}
 
 describe('empty property detection', () => {
 	it('treats blank text-like values as empty', () => {
@@ -138,5 +169,77 @@ describe('empty property detection', () => {
 				},
 			),
 		).toBe(true);
+	});
+});
+
+describe('conditional visibility', () => {
+	it('disables conditional visibility when the prefix is empty', () => {
+		expect(
+			conditionalVisibility({
+				prefix: '',
+				frontmatter: { score: false },
+				formulaValue: new BooleanValue(false),
+			}),
+		).toBe(true);
+	});
+
+	it.each([
+		{ mode: 'show' as const, controller: true, expected: true },
+		{ mode: 'show' as const, controller: false, expected: false },
+		{ mode: 'hide' as const, controller: true, expected: false },
+		{ mode: 'hide' as const, controller: false, expected: true },
+	])(
+		'applies a $controller note controller in $mode mode',
+		({ mode, controller, expected }) => {
+			expect(
+				conditionalVisibility({
+					frontmatter: { 'show-score': controller },
+					mode,
+				}),
+			).toBe(expected);
+		},
+	);
+
+	it('uses a boolean formula controller when the note controller is absent', () => {
+		expect(
+			conditionalVisibility({ formulaValue: new BooleanValue(false) }),
+		).toBe(false);
+		expect(
+			conditionalVisibility({
+				formulaValue: new BooleanValue(true),
+				mode: 'hide',
+			}),
+		).toBe(false);
+	});
+
+	it('gives an existing note controller precedence over the formula controller', () => {
+		expect(
+			conditionalVisibility({
+				frontmatter: { 'show-score': false },
+				formulaValue: new BooleanValue(true),
+			}),
+		).toBe(false);
+	});
+
+	it('defaults to visible for missing and non-boolean controllers', () => {
+		expect(conditionalVisibility()).toBe(true);
+		expect(
+			conditionalVisibility({ formulaValue: new StringValue('true') }),
+		).toBe(true);
+		expect(
+			conditionalVisibility({
+				frontmatter: { 'show-score': 'true' },
+				formulaValue: new BooleanValue(false),
+			}),
+		).toBe(true);
+	});
+
+	it('uses the target name regardless of whether the target is a property or formula', () => {
+		expect(
+			conditionalVisibility({
+				propertyName: 'Test',
+				frontmatter: { 'show-Test': false },
+			}),
+		).toBe(false);
 	});
 });

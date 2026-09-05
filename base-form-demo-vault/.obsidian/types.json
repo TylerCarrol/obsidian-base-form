@@ -8,6 +8,7 @@
     "score": "number",
     "featured": "checkbox",
     "review-date": "date",
-    "appointment": "datetime"
+    "appointment": "datetime",
+    "show-interests": "checkbox"
   }
 }

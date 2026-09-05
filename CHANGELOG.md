@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add per-view conditional property and formula visibility using boolean note properties or formulas.
+
+### Changed
+
+- Always show the manual submit option, including when non-empty properties are visible.
+
 ## [0.7.0] - 2026-09-04
 
 ### Added

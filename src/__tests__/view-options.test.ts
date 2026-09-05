@@ -42,6 +42,8 @@ describe('form view settings', () => {
 				manualSubmit: true,
 				submitButtonName: 'Save form',
 				submitButtonPosition: 'top',
+				visibilityConditionalPrefix: 'show-',
+				visibilityConditionalMode: 'hide',
 				itemSpacing: 12,
 				formWidth: 40,
 				enableDeletePropertyButton: true,
@@ -53,13 +55,33 @@ describe('form view settings', () => {
 			manualSubmit: true,
 			submitButtonName: 'Save form',
 			submitButtonPosition: 'top',
+			visibilityConditionalPrefix: 'show-',
+			visibilityConditionalMode: 'hide',
 			itemSpacing: 12,
 			formWidth: 40,
 			enableDeletePropertyButton: true,
 		});
 	});
 
-	it('shows submit options only for empty-property forms', () => {
+	it('registers conditional visibility options', () => {
+		const options = getFormViewOptions({ get: () => undefined });
+		const prefix = findOption(options, 'visibilityConditionalPrefix');
+		const mode = findOption(options, 'visibilityConditionalMode');
+
+		expect(prefix).toMatchObject({
+			type: 'text',
+			displayName: 'Visibility conditional prefix',
+			default: '',
+		});
+		expect(mode).toMatchObject({
+			type: 'dropdown',
+			displayName: 'Visibility conditional mode',
+			default: 'show',
+			options: { show: 'Show', hide: 'Hide' },
+		});
+	});
+
+	it('always shows manual submit and conditionally shows its button options', () => {
 		const options = getFormViewOptions({
 			get: (key: string) =>
 				({ hideNonEmptyProperties: true, manualSubmit: true })[key],
@@ -67,7 +89,7 @@ describe('form view settings', () => {
 		const manualSubmit = findOption(options, 'manualSubmit');
 		const submitButtonName = findOption(options, 'submitButtonName');
 
-		expect(manualSubmit?.shouldHide?.()).toBe(false);
+		expect(manualSubmit?.shouldHide).toBeUndefined();
 		expect(submitButtonName?.shouldHide?.()).toBe(false);
 
 		const disabledOptions = getFormViewOptions({
@@ -75,8 +97,8 @@ describe('form view settings', () => {
 				({ hideNonEmptyProperties: false, manualSubmit: true })[key],
 		});
 		expect(
-			findOption(disabledOptions, 'manualSubmit')?.shouldHide?.(),
-		).toBe(true);
+			findOption(disabledOptions, 'manualSubmit')?.shouldHide,
+		).toBeUndefined();
 		expect(
 			findOption(disabledOptions, 'submitButtonName')?.shouldHide?.(),
 		).toBe(true);
@@ -101,12 +123,12 @@ describe('form view settings', () => {
 		const manualSubmit = findOption(options, 'manualSubmit');
 		const submitButtonName = findOption(options, 'submitButtonName');
 
-		expect(manualSubmit?.shouldHide?.()).toBe(true);
+		expect(manualSubmit?.shouldHide).toBeUndefined();
 		expect(submitButtonName?.shouldHide?.()).toBe(true);
 
 		values.hideNonEmptyProperties = true;
 		values.manualSubmit = true;
-		expect(manualSubmit?.shouldHide?.()).toBe(false);
+		expect(manualSubmit?.shouldHide).toBeUndefined();
 		expect(submitButtonName?.shouldHide?.()).toBe(false);
 	});
 
@@ -161,6 +183,8 @@ describe('form view settings', () => {
 				manualSubmit: 'true',
 				submitButtonName: 42,
 				submitButtonPosition: 'middle',
+				visibilityConditionalPrefix: 42,
+				visibilityConditionalMode: 'toggle',
 			}),
 		).toEqual(DEFAULT_FORM_VIEW_SETTINGS);
 	});

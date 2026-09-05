@@ -19,4 +19,11 @@ view uses the default compact spacing and visible file names. The embedded
 **This - Form** view hides the file name and uses tighter spacing to demonstrate
 the view options.
 
+The **Conditional Show/Hide** view uses the `show-` prefix in Show mode. The
+`show-score` note property shows Ada's score, hides Alan's score, and leaves
+Grace's score visible because her controller is missing. The
+`formula.show-appointment` controller follows `featured`, so appointments are
+shown only for featured notes. The controller fields are not in the view order
+and do not appear in the form.
+
 The `Demo notes` folder contains three sample profiles. `Grace Hopper.md` includes empty optional values to demonstrate editing blank fields.

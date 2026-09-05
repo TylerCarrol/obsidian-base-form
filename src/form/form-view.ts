@@ -31,6 +31,7 @@ import type { FormInputSuggest, LinkSuggestion } from './input-suggest';
 import {
 	getRawValue,
 	isEditablePropertyValue,
+	shouldRenderByVisibilityCondition,
 	shouldRenderPropertyInput,
 	resolveFieldTypes,
 } from './property-types';
@@ -426,6 +427,8 @@ export class BaseFormView extends BasesView {
 					settings.hideNonEmptyProperties,
 					settings.hideNonExistentProperties,
 					settings.enableDeletePropertyButton,
+					settings.visibilityConditionalPrefix,
+					settings.visibilityConditionalMode,
 					settings.manualSubmit,
 					settings.submitButtonName,
 					settings.submitButtonPosition,
@@ -494,6 +497,8 @@ export class BaseFormView extends BasesView {
 		hideNonEmptyProperties: boolean,
 		hideNonExistentProperties: boolean,
 		enableDeletePropertyButton: boolean,
+		visibilityConditionalPrefix: string,
+		visibilityConditionalMode: FormViewSettings['visibilityConditionalMode'],
 		manualSubmit: boolean,
 		submitButtonName: string,
 		submitButtonPosition: FormViewSettings['submitButtonPosition'],
@@ -542,6 +547,8 @@ export class BaseFormView extends BasesView {
 				hideNonEmptyProperties,
 				hideNonExistentProperties,
 				enableDeletePropertyButton,
+				visibilityConditionalPrefix,
+				visibilityConditionalMode,
 				linkSuggestions,
 			);
 		});
@@ -561,6 +568,8 @@ export class BaseFormView extends BasesView {
 		hideNonEmptyProperties: boolean,
 		hideNonExistentProperties: boolean,
 		enableDeletePropertyButton: boolean,
+		visibilityConditionalPrefix: string,
+		visibilityConditionalMode: FormViewSettings['visibilityConditionalMode'],
 		linkSuggestions: readonly LinkSuggestion[],
 	): void {
 		const property = parsePropertyId(propertyId);
@@ -572,6 +581,13 @@ export class BaseFormView extends BasesView {
 				: undefined;
 
 		if (
+			!shouldRenderByVisibilityCondition(
+				this.app,
+				entry,
+				property.name,
+				visibilityConditionalPrefix,
+				visibilityConditionalMode,
+			) ||
 			!shouldRenderPropertyInput(fieldType, propertyType, rawValue, value, {
 				hideNonEmptyProperties,
 				hideNonExistentProperties,

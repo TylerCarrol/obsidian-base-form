@@ -9,6 +9,8 @@ const SUBMIT_BUTTON_POSITION_KEY = 'submitButtonPosition';
 const SHOW_ONLY_EMPTY_INPUTS_KEY = 'showOnlyEmptyInputs';
 const SHOW_ONLY_EXISTING_INPUTS_KEY = 'showOnlyExistingInputs';
 const ENABLE_DELETE_PROPERTY_BUTTON_KEY = 'enableDeletePropertyButton';
+const VISIBILITY_CONDITIONAL_PREFIX_KEY = 'visibilityConditionalPrefix';
+const VISIBILITY_CONDITIONAL_MODE_KEY = 'visibilityConditionalMode';
 const ITEM_SPACING_KEY = 'itemSpacing';
 const FORM_WIDTH_KEY = 'formWidth';
 const MIN_ITEM_SPACING = 0;
@@ -29,6 +31,8 @@ export interface FormViewSettings {
 		| 'bottom-each-note'
 		| 'top-each-note';
 	enableDeletePropertyButton: boolean;
+	visibilityConditionalPrefix: string;
+	visibilityConditionalMode: 'show' | 'hide';
 	itemSpacing: number;
 	formWidth: number;
 }
@@ -41,6 +45,8 @@ export const DEFAULT_FORM_VIEW_SETTINGS: FormViewSettings = {
 	submitButtonName: 'Submit',
 	submitButtonPosition: 'bottom',
 	enableDeletePropertyButton: false,
+	visibilityConditionalPrefix: '',
+	visibilityConditionalMode: 'show',
 	itemSpacing: 8,
 	formWidth: 52,
 };
@@ -75,7 +81,6 @@ export function getFormViewOptions(
 					key: MANUAL_SUBMIT_KEY,
 					displayName: 'Manual submit',
 					default: DEFAULT_FORM_VIEW_SETTINGS.manualSubmit,
-					shouldHide: hideSubmitOptions,
 				},
 				{
 					type: 'text',
@@ -119,6 +124,28 @@ export function getFormViewOptions(
 			],
 		},
 		{
+			type: 'group',
+			displayName: 'Conditional visibility',
+			items: [
+				{
+					type: 'text',
+					key: VISIBILITY_CONDITIONAL_PREFIX_KEY,
+					displayName: 'Visibility conditional prefix',
+					default: DEFAULT_FORM_VIEW_SETTINGS.visibilityConditionalPrefix,
+				},
+				{
+					type: 'dropdown',
+					key: VISIBILITY_CONDITIONAL_MODE_KEY,
+					displayName: 'Visibility conditional mode',
+					default: DEFAULT_FORM_VIEW_SETTINGS.visibilityConditionalMode,
+					options: {
+						show: 'Show',
+						hide: 'Hide',
+					},
+				},
+			],
+		},
+		{
 			type: 'slider',
 			key: ITEM_SPACING_KEY,
 			displayName: 'Item spacing',
@@ -156,6 +183,12 @@ export function getFormViewSettings(
 	const submitButtonPosition = config.get(SUBMIT_BUTTON_POSITION_KEY);
 	const enableDeletePropertyButton =
 		config.get(ENABLE_DELETE_PROPERTY_BUTTON_KEY);
+	const visibilityConditionalPrefix = config.get(
+		VISIBILITY_CONDITIONAL_PREFIX_KEY,
+	);
+	const visibilityConditionalMode = config.get(
+		VISIBILITY_CONDITIONAL_MODE_KEY,
+	);
 	const itemSpacing = config.get(ITEM_SPACING_KEY);
 	const formWidth = config.get(FORM_WIDTH_KEY);
 
@@ -192,6 +225,15 @@ export function getFormViewSettings(
 			typeof enableDeletePropertyButton === 'boolean'
 				? enableDeletePropertyButton
 				: DEFAULT_FORM_VIEW_SETTINGS.enableDeletePropertyButton,
+		visibilityConditionalPrefix:
+			typeof visibilityConditionalPrefix === 'string'
+				? visibilityConditionalPrefix
+				: DEFAULT_FORM_VIEW_SETTINGS.visibilityConditionalPrefix,
+		visibilityConditionalMode:
+			visibilityConditionalMode === 'show' ||
+			visibilityConditionalMode === 'hide'
+				? visibilityConditionalMode
+				: DEFAULT_FORM_VIEW_SETTINGS.visibilityConditionalMode,
 		itemSpacing:
 			typeof itemSpacing === 'number' && Number.isFinite(itemSpacing)
 				? Math.min(

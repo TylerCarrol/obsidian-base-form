@@ -166,6 +166,34 @@ export function shouldRenderPropertyInput(
 	return true;
 }
 
+export function shouldRenderByVisibilityCondition(
+	app: App,
+	entry: BasesEntry,
+	propertyName: string,
+	prefix: string,
+	mode: 'show' | 'hide',
+): boolean {
+	if (prefix === '') {
+		return true;
+	}
+
+	const controllerName = `${prefix}${propertyName}`;
+	const noteController = getRawValue(app, entry.file, controllerName);
+	if (noteController !== undefined) {
+		return typeof noteController !== 'boolean' ||
+			(mode === 'show' ? noteController : !noteController);
+	}
+
+	const formulaController = entry.getValue(`formula.${controllerName}`);
+	if (!(formulaController instanceof BooleanValue)) {
+		return true;
+	}
+
+	return mode === 'show'
+		? formulaController.isTruthy()
+		: !formulaController.isTruthy();
+}
+
 function getConfiguredFieldType(
 	app: App,
 	propertyName: string,

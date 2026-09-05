@@ -4,6 +4,8 @@ filters:
 formulas:
   Link: link(file, file)
   Test: '"Test: " + score + " - " + interests'
+  show-appointment: featured
+  show-full-name: "false"
 properties:
   note.full-name:
     displayName: Full name
@@ -81,6 +83,32 @@ views:
     hideNonEmptyProperties: true
     hideNonExistentProperties: true
     enableDeletePropertyButton: true
+    manualSubmit: false
+  - type: base-form
+    name: Conditional Show/Hide
+    groupBy:
+      property: featured
+      direction: ASC
+    order:
+      - full-name
+      - interests
+      - reference
+      - related-notes
+      - score
+      - featured
+      - review-date
+      - appointment
+      - non-existing-property
+      - show-interests
+    visibilityConditionalPrefix: show-
+    visibilityConditionalMode: show
+    itemSpacing: 8
+    formWidth: 80
+    showOnlyEmptyInputs: true
+    hideNonEmptyProperties: false
+    manualSubmit: false
+    submitButtonName: Submit
+    submitButtonPosition: bottom-each-note
   - type: base-form
     name: This - Form
     filters:
