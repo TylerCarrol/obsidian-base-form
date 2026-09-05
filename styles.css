@@ -262,10 +262,22 @@ textarea.base-form-control {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--size-2-1);
+	cursor: grab;
 	padding: 0.1rem 0;
 	color: var(--text-normal);
 	font-size: var(--font-ui-smaller);
 	line-height: 1.35;
+}
+
+.base-form-list-chip.is-dragging {
+	cursor: grabbing;
+	opacity: 0.45;
+}
+
+.base-form-list-chip.is-drag-over {
+	border-radius: var(--radius-s);
+	background: var(--background-modifier-hover);
+	box-shadow: 0 0 0 1px var(--interactive-accent);
 }
 
 .base-form-list-chip-label {

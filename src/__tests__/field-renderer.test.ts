@@ -317,4 +317,35 @@ describe('editable list link suggestions', () => {
 			)?.dataset.filePath,
 		).toBe('Demo notes/Grace Hopper.md');
 	});
+
+	it('reorders list items by drag and drop', () => {
+		const fieldEl = document.createElement('div');
+		renderEditableField({
+			app: { metadataCache: { getFirstLinkpathDest: vi.fn() } } as never,
+			controlId: 'tags-control',
+			displayName: 'Tags',
+			fieldEl,
+			fieldType: 'list',
+			filePath: 'Demo notes/Alan Turing.md',
+			propertyName: 'tags',
+			rawValue: ['Alpha', 'Beta', 'Gamma'],
+			sourcePath: 'Demo notes/Alan Turing.md',
+			value: null,
+		});
+		const chips = fieldEl.querySelectorAll<HTMLElement>(
+			'.base-form-list-chip',
+		);
+		const hiddenValue = fieldEl.querySelector<HTMLInputElement>(
+			'.base-form-list-value',
+		);
+		const changeListener = vi.fn();
+		fieldEl.addEventListener('change', changeListener);
+
+		chips[0]?.dispatchEvent(new Event('dragstart', { bubbles: true }));
+		chips[1]?.dispatchEvent(new Event('dragover', { bubbles: true }));
+		chips[1]?.dispatchEvent(new Event('drop', { bubbles: true }));
+
+		expect(hiddenValue?.value).toBe('Beta\nAlpha\nGamma');
+		expect(changeListener).toHaveBeenCalledOnce();
+	});
 });

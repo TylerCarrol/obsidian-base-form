@@ -359,6 +359,7 @@ function createListControl(
 	});
 
 	const items = value === '' ? [] : value.split(/\r?\n/);
+	let draggedIndex: number | null = null;
 
 	const syncValue = (persistChange: boolean): void => {
 		hiddenValue.value = items.join('\n');
@@ -411,10 +412,48 @@ function createListControl(
 		for (let index = 0; index < items.length; index++) {
 			const item = items[index] ?? '';
 			const chipEl = chipsEl.createDiv({ cls: 'base-form-list-chip' });
+			chipEl.draggable = true;
+			chipEl.setAttribute('aria-label', `List item ${index + 1}: ${item}`);
 			const labelEl = chipEl.createSpan({
 				cls: 'base-form-list-chip-label',
 			});
 			renderLinkAwareText(labelEl, app, sourcePath, item);
+			chipEl.addEventListener('dragstart', () => {
+				draggedIndex = index;
+				chipEl.addClass('is-dragging');
+			});
+			chipEl.addEventListener('dragover', (event) => {
+				event.preventDefault();
+				if (draggedIndex !== null && draggedIndex !== index) {
+					chipEl.addClass('is-drag-over');
+				}
+			});
+			chipEl.addEventListener('dragleave', () => {
+				chipEl.classList.remove('is-drag-over');
+			});
+			chipEl.addEventListener('drop', (event) => {
+				event.preventDefault();
+				chipEl.classList.remove('is-drag-over');
+				if (draggedIndex === null || draggedIndex === index) {
+					return;
+				}
+
+				const [draggedItem] = items.splice(draggedIndex, 1);
+				if (draggedItem === undefined) {
+					return;
+				}
+				items.splice(index, 0, draggedItem);
+				draggedIndex = null;
+				renderChips();
+				syncValue(true);
+			});
+			chipEl.addEventListener('dragend', () => {
+				draggedIndex = null;
+				chipEl.classList.remove('is-dragging');
+				chipsEl.querySelectorAll('.is-drag-over').forEach((element) => {
+					element.classList.remove('is-drag-over');
+				});
+			});
 
 			const removeButton = chipEl.createEl('button', {
 				cls: 'base-form-list-chip-remove',
