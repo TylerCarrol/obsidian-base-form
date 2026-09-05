@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-05
+
 ### Added
 
 - Add per-view conditional property and formula visibility using boolean note properties or formulas.
 - Add a per-view option to confirm before deleting items from lists.
 - Add a per-view option to show number decrement and increment buttons to the
-	left and right of the input or in a top and bottom stack.
+  left and right of the input or in a top and bottom stack.
 - Add drag-and-drop ordering for list items.
 
 ### Changed
@@ -102,7 +104,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add per-view file name visibility, empty-input filtering, item spacing, and form width options.
 - Add a demo base and sample notes covering each supported property type.
 
-[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.8.0...HEAD
+
+[0.8.0]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.7.0...v0.8.0
 
 [0.7.0]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.6.4...v0.7.0
 
