@@ -427,6 +427,7 @@ export class BaseFormView extends BasesView {
 					settings.hideNonEmptyProperties,
 					settings.hideNonExistentProperties,
 					settings.enableDeletePropertyButton,
+					settings.confirmListItemDeletion,
 					settings.visibilityConditionalPrefix,
 					settings.visibilityConditionalMode,
 					settings.manualSubmit,
@@ -497,6 +498,7 @@ export class BaseFormView extends BasesView {
 		hideNonEmptyProperties: boolean,
 		hideNonExistentProperties: boolean,
 		enableDeletePropertyButton: boolean,
+		confirmListItemDeletion: boolean,
 		visibilityConditionalPrefix: string,
 		visibilityConditionalMode: FormViewSettings['visibilityConditionalMode'],
 		manualSubmit: boolean,
@@ -547,6 +549,7 @@ export class BaseFormView extends BasesView {
 				hideNonEmptyProperties,
 				hideNonExistentProperties,
 				enableDeletePropertyButton,
+				confirmListItemDeletion,
 				visibilityConditionalPrefix,
 				visibilityConditionalMode,
 				linkSuggestions,
@@ -568,6 +571,7 @@ export class BaseFormView extends BasesView {
 		hideNonEmptyProperties: boolean,
 		hideNonExistentProperties: boolean,
 		enableDeletePropertyButton: boolean,
+		confirmListItemDeletion: boolean,
 		visibilityConditionalPrefix: string,
 		visibilityConditionalMode: FormViewSettings['visibilityConditionalMode'],
 		linkSuggestions: readonly LinkSuggestion[],
@@ -635,6 +639,7 @@ export class BaseFormView extends BasesView {
 		);
 		const inputSuggest = renderEditableField({
 			app: this.app,
+			confirmListItemDeletion,
 			controlId,
 			displayName,
 			draftValue: this.drafts.get(

@@ -38,6 +38,7 @@ views:
     itemSpacing: 8
     formWidth: 80
     showOnlyEmptyInputs: false
+    confirmListItemDeletion: true
   - type: base-form
     name: Empty Properties Only
     groupBy:
@@ -109,6 +110,7 @@ views:
     manualSubmit: false
     submitButtonName: Submit
     submitButtonPosition: bottom-each-note
+    confirmListItemDeletion: true
   - type: base-form
     name: This - Form
     filters:

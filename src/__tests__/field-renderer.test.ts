@@ -177,6 +177,37 @@ describe('editable text link rendering', () => {
 });
 
 describe('editable list link suggestions', () => {
+	it('confirms before deleting a list item when enabled', () => {
+		const fieldEl = document.createElement('div');
+		renderEditableField({
+			app: { metadataCache: { getFirstLinkpathDest: vi.fn() } } as never,
+			confirmListItemDeletion: true,
+			controlId: 'tags-control',
+			displayName: 'Tags',
+			fieldEl,
+			fieldType: 'list',
+			filePath: 'Demo notes/Alan Turing.md',
+			propertyName: 'tags',
+			rawValue: ['Alpha', 'Beta'],
+			sourcePath: 'Demo notes/Alan Turing.md',
+			value: null,
+		});
+		const hiddenValue = fieldEl.querySelector<HTMLInputElement>(
+			'.base-form-list-value',
+		);
+
+		fieldEl.querySelector<HTMLButtonElement>('.base-form-list-chip-remove')?.click();
+
+		expect(hiddenValue?.value).toBe('Alpha\nBeta');
+		const modal = document.querySelector<HTMLElement>('.modal-container');
+		expect(modal?.textContent).toContain('Delete list item?');
+		expect(modal?.textContent).toContain('Delete "Alpha" from this list?');
+
+		modal?.querySelector<HTMLButtonElement>('button.mod-warning')?.click();
+
+		expect(hiddenValue?.value).toBe('Beta');
+	});
+
 	it('commits a selected note as a linked list item', () => {
 		const linkedFile = { path: 'Demo notes/Grace Hopper.md' };
 		const app = {

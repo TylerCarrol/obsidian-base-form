@@ -1,5 +1,6 @@
 import {
 	App,
+	ConfirmationModal,
 	ListValue,
 	NullValue,
 	StringValue,
@@ -25,6 +26,7 @@ interface DeletePropertyAction {
 
 interface EditableFieldOptions {
 	app: App;
+	confirmListItemDeletion?: boolean;
 	controlId: string;
 	displayName: string;
 	draftValue?: FormControlValue;
@@ -63,6 +65,7 @@ function renderDeleteButton(
 
 export function renderEditableField({
 	app,
+	confirmListItemDeletion = false,
 	controlId,
 	displayName,
 	draftValue,
@@ -92,6 +95,7 @@ export function renderEditableField({
 		fieldType,
 		draftValue ??
 			formatFormValue(fieldType, rawValue, fallback),
+		confirmListItemDeletion,
 		sourcePath,
 		listSuggestions,
 		linkSuggestions,
@@ -172,6 +176,7 @@ function createControl(
 	fieldEl: HTMLElement,
 	fieldType: FormFieldType,
 	value: FormControlValue,
+	confirmListItemDeletion: boolean,
 	sourcePath: string,
 	listSuggestions: readonly string[],
 	linkSuggestions: readonly LinkSuggestion[],
@@ -181,6 +186,7 @@ function createControl(
 			app,
 			fieldEl,
 			String(value),
+			confirmListItemDeletion,
 			sourcePath,
 			listSuggestions,
 		);
@@ -251,6 +257,7 @@ function createListControl(
 	app: App,
 	fieldEl: HTMLElement,
 	value: string,
+	confirmListItemDeletion: boolean,
 	sourcePath: string,
 	listSuggestions: readonly string[],
 ): CreatedControl {
@@ -281,6 +288,42 @@ function createListControl(
 		}
 	};
 
+	const removeItem = (index: number, persistChange: boolean): void => {
+		items.splice(index, 1);
+		renderChips();
+		syncValue(persistChange);
+		input.focus();
+	};
+
+	const requestItemRemoval = (
+		index: number,
+		persistChange: boolean,
+	): void => {
+		if (!confirmListItemDeletion) {
+			removeItem(index, persistChange);
+			return;
+		}
+
+		const item = items[index];
+		if (item === undefined) {
+			return;
+		}
+		const modal = new ConfirmationModal(app);
+		modal.titleEl.setText('Delete list item?');
+		modal.contentEl.setText(`Delete "${item}" from this list?`);
+		modal.addButton((button) => {
+			button.setButtonText('Delete');
+			button.setCta();
+			button.setDestructive();
+			button.onClick(() => {
+				modal.close();
+				removeItem(index, persistChange);
+			});
+		});
+		modal.addCancelButton('Cancel');
+		modal.open();
+	};
+
 	const renderChips = (): void => {
 		chipsEl.empty();
 		for (let index = 0; index < items.length; index++) {
@@ -297,10 +340,7 @@ function createListControl(
 			removeButton.type = 'button';
 			removeButton.ariaLabel = `Remove ${item}`;
 			removeButton.addEventListener('click', () => {
-				items.splice(index, 1);
-				renderChips();
-				syncValue(true);
-				input.focus();
+				requestItemRemoval(index, true);
 			});
 		}
 	};
@@ -338,9 +378,7 @@ function createListControl(
 			items.length > 0
 		) {
 			event.preventDefault();
-			items.pop();
-			renderChips();
-			syncValue(false);
+			requestItemRemoval(items.length - 1, false);
 		}
 	});
 	input.addEventListener('blur', () => {

@@ -41,6 +41,7 @@ describe('form view settings', () => {
 				hideNonExistentProperties: true,
 				manualSubmit: true,
 				submitButtonName: 'Save form',
+				confirmListItemDeletion: true,
 				submitButtonPosition: 'top',
 				visibilityConditionalPrefix: 'show-',
 				visibilityConditionalMode: 'hide',
@@ -54,12 +55,26 @@ describe('form view settings', () => {
 			hideNonExistentProperties: true,
 			manualSubmit: true,
 			submitButtonName: 'Save form',
+			confirmListItemDeletion: true,
 			submitButtonPosition: 'top',
 			visibilityConditionalPrefix: 'show-',
 			visibilityConditionalMode: 'hide',
 			itemSpacing: 12,
 			formWidth: 40,
 			enableDeletePropertyButton: true,
+		});
+	});
+
+	it('registers list item deletion confirmation', () => {
+		const option = findOption(
+			getFormViewOptions({ get: () => undefined }),
+			'confirmListItemDeletion',
+		);
+
+		expect(option).toMatchObject({
+			type: 'toggle',
+			displayName: 'Confirm list item deletion',
+			default: false,
 		});
 	});
 
@@ -178,6 +193,7 @@ describe('form view settings', () => {
 				showFileName: 'false',
 				hideNonEmptyProperties: 'true',
 				hideNonExistentProperties: 'true',
+				confirmListItemDeletion: 'true',
 				itemSpacing: '12',
 				enableDeletePropertyButton: 'true',
 				manualSubmit: 'true',

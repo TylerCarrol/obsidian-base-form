@@ -6,6 +6,7 @@ const HIDE_NON_EXISTENT_PROPERTIES_KEY = 'hideNonExistentProperties';
 const MANUAL_SUBMIT_KEY = 'manualSubmit';
 const SUBMIT_BUTTON_NAME_KEY = 'submitButtonName';
 const SUBMIT_BUTTON_POSITION_KEY = 'submitButtonPosition';
+const CONFIRM_LIST_ITEM_DELETION_KEY = 'confirmListItemDeletion';
 const SHOW_ONLY_EMPTY_INPUTS_KEY = 'showOnlyEmptyInputs';
 const SHOW_ONLY_EXISTING_INPUTS_KEY = 'showOnlyExistingInputs';
 const ENABLE_DELETE_PROPERTY_BUTTON_KEY = 'enableDeletePropertyButton';
@@ -24,6 +25,7 @@ export interface FormViewSettings {
 	hideNonExistentProperties: boolean;
 	manualSubmit: boolean;
 	submitButtonName: string;
+	confirmListItemDeletion: boolean;
 	submitButtonPosition:
 		| 'top'
 		| 'bottom'
@@ -43,6 +45,7 @@ export const DEFAULT_FORM_VIEW_SETTINGS: FormViewSettings = {
 	hideNonExistentProperties: false,
 	manualSubmit: false,
 	submitButtonName: 'Submit',
+	confirmListItemDeletion: false,
 	submitButtonPosition: 'bottom',
 	enableDeletePropertyButton: false,
 	visibilityConditionalPrefix: '',
@@ -70,6 +73,12 @@ export function getFormViewOptions(
 			type: 'group',
 			displayName: 'Data entry',
 			items: [
+				{
+					type: 'toggle',
+					key: CONFIRM_LIST_ITEM_DELETION_KEY,
+					displayName: 'Confirm list item deletion',
+					default: DEFAULT_FORM_VIEW_SETTINGS.confirmListItemDeletion,
+				},
 				{
 					type: 'toggle',
 					key: HIDE_NON_EMPTY_PROPERTIES_KEY,
@@ -180,6 +189,7 @@ export function getFormViewSettings(
 		config.get(SHOW_ONLY_EXISTING_INPUTS_KEY);
 	const manualSubmit = config.get(MANUAL_SUBMIT_KEY);
 	const submitButtonName = config.get(SUBMIT_BUTTON_NAME_KEY);
+	const confirmListItemDeletion = config.get(CONFIRM_LIST_ITEM_DELETION_KEY);
 	const submitButtonPosition = config.get(SUBMIT_BUTTON_POSITION_KEY);
 	const enableDeletePropertyButton =
 		config.get(ENABLE_DELETE_PROPERTY_BUTTON_KEY);
@@ -213,6 +223,10 @@ export function getFormViewSettings(
 			typeof submitButtonName === 'string' && submitButtonName.trim() !== ''
 				? submitButtonName
 				: DEFAULT_FORM_VIEW_SETTINGS.submitButtonName,
+		confirmListItemDeletion:
+			typeof confirmListItemDeletion === 'boolean'
+				? confirmListItemDeletion
+				: DEFAULT_FORM_VIEW_SETTINGS.confirmListItemDeletion,
 		submitButtonPosition:
 			submitButtonPosition === 'top' ||
 			submitButtonPosition === 'bottom' ||

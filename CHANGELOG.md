@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add per-view conditional property and formula visibility using boolean note properties or formulas.
+- Add a per-view option to confirm before deleting items from lists.
 
 ### Changed
 

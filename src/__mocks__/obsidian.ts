@@ -55,6 +55,62 @@ export class Notice {
 	constructor(public message: string) {}
 }
 
+class ConfirmationButton {
+	constructor(private readonly buttonEl: HTMLButtonElement) {}
+
+	setButtonText(text: string): this {
+		this.buttonEl.textContent = text;
+		return this;
+	}
+
+	setCta(): this {
+		return this;
+	}
+
+	setDestructive(): this {
+		this.buttonEl.classList.add('mod-warning');
+		return this;
+	}
+
+	onClick(callback: () => void): this {
+		this.buttonEl.addEventListener('click', callback);
+		return this;
+	}
+}
+
+export class ConfirmationModal {
+	readonly titleEl = document.createElement('div');
+	readonly contentEl = document.createElement('div');
+	private readonly modalEl = document.createElement('div');
+	private readonly buttonsEl = document.createElement('div');
+
+	constructor(public app: unknown) {
+		this.modalEl.className = 'modal-container';
+		this.modalEl.append(this.titleEl, this.contentEl, this.buttonsEl);
+	}
+
+	addButton(callback: (button: ConfirmationButton) => void): void {
+		const buttonEl = document.createElement('button');
+		this.buttonsEl.appendChild(buttonEl);
+		callback(new ConfirmationButton(buttonEl));
+	}
+
+	addCancelButton(text: string): void {
+		const buttonEl = document.createElement('button');
+		buttonEl.textContent = text;
+		buttonEl.addEventListener('click', () => this.close());
+		this.buttonsEl.appendChild(buttonEl);
+	}
+
+	open(): void {
+		document.body.appendChild(this.modalEl);
+	}
+
+	close(): void {
+		this.modalEl.remove();
+	}
+}
+
 export class Plugin {}
 
 export class BasesView {
