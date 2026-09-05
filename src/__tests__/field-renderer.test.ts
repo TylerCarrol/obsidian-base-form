@@ -93,6 +93,70 @@ describe('link suggestion toggle', () => {
 	});
 });
 
+describe('number buttons', () => {
+	function renderNumberField(
+		numberButtonLayout: 'none' | 'left-right' | 'top-bottom',
+	): HTMLElement {
+		const fieldEl = document.createElement('div');
+		renderEditableField({
+			app: {} as never,
+			controlId: 'score-control',
+			displayName: 'Score',
+			draftValue: '5',
+			fieldEl,
+			fieldType: 'number',
+			filePath: 'Demo notes/Alan Turing.md',
+			numberButtonLayout,
+			propertyName: 'score',
+			rawValue: 5,
+			sourcePath: 'Demo notes/Alan Turing.md',
+			value: null,
+		});
+		return fieldEl;
+	}
+
+	it('does not render buttons for the none layout', () => {
+		const fieldEl = renderNumberField('none');
+
+		expect(fieldEl.querySelector('.base-form-number-control.is-none')).not.toBeNull();
+		expect(fieldEl.querySelectorAll('.base-form-number-button')).toHaveLength(0);
+	});
+
+	it('renders left and right buttons that update the input and emit save events', () => {
+		const fieldEl = renderNumberField('left-right');
+		const wrapper = fieldEl.querySelector<HTMLElement>('.base-form-number-control');
+		const input = fieldEl.querySelector<HTMLInputElement>('input[type="number"]');
+		const inputListener = vi.fn();
+		const changeListener = vi.fn();
+		fieldEl.addEventListener('input', inputListener);
+		fieldEl.addEventListener('change', changeListener);
+
+		wrapper?.querySelector<HTMLButtonElement>('[aria-label="Increase Score"]')?.click();
+
+		expect(input?.value).toBe('6');
+		expect(inputListener).toHaveBeenCalledOnce();
+		expect(changeListener).toHaveBeenCalledOnce();
+		expect(wrapper?.firstElementChild?.getAttribute('aria-label')).toBe(
+			'Decrease Score',
+		);
+		expect(wrapper?.lastElementChild?.getAttribute('aria-label')).toBe(
+			'Increase Score',
+		);
+	});
+
+	it('stacks increment above decrement for the top and bottom layout', () => {
+		const fieldEl = renderNumberField('top-bottom');
+		const buttons = fieldEl.querySelectorAll<HTMLButtonElement>(
+			'.base-form-number-buttons .base-form-number-button',
+		);
+
+		expect(Array.from(buttons, (button) => button.ariaLabel)).toEqual([
+			'Increase Score',
+			'Decrease Score',
+		]);
+	});
+});
+
 describe('read-only link rendering', () => {
 	it('renders markdown links to notes as internal links', () => {
 		const app = {

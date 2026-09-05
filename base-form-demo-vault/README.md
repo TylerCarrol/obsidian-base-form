@@ -17,7 +17,8 @@ List values are entered one item per line. Linked values use note links so you c
 see the autocomplete and the link-style display in the form. The main **Form**
 view uses the default compact spacing and visible file names. The embedded
 **This - Form** view hides the file name and uses tighter spacing to demonstrate
-the view options.
+the view options. The main **Form** view also puts decrement and increment
+buttons on the left and right of number fields.
 
 The **Conditional Show/Hide** view uses the `show-` prefix in Show mode. The
 `show-score` note property shows Ada's score, hides Alan's score, and leaves

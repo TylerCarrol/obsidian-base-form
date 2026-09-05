@@ -17,6 +17,7 @@ import {
 	ListInputSuggest,
 } from './input-suggest';
 import type { FormInputSuggest, LinkSuggestion } from './input-suggest';
+import type { NumberButtonLayout } from './view-options';
 
 export type FormControl = HTMLInputElement | HTMLTextAreaElement;
 
@@ -36,6 +37,7 @@ interface EditableFieldOptions {
 	filePath: string;
 	listSuggestions?: readonly string[];
 	linkSuggestions?: readonly LinkSuggestion[];
+	numberButtonLayout?: NumberButtonLayout;
 	propertyName: string;
 	rawValue: unknown;
 	sourcePath: string;
@@ -75,6 +77,7 @@ export function renderEditableField({
 	filePath,
 	listSuggestions = [],
 	linkSuggestions = [],
+	numberButtonLayout = 'none',
 	propertyName,
 	rawValue,
 	sourcePath,
@@ -99,6 +102,8 @@ export function renderEditableField({
 		sourcePath,
 		listSuggestions,
 		linkSuggestions,
+		numberButtonLayout,
+		displayName,
 	);
 	renderDeleteButton(fieldBodyEl, displayName, deleteAction);
 	control.id = controlId;
@@ -180,6 +185,8 @@ function createControl(
 	sourcePath: string,
 	listSuggestions: readonly string[],
 	linkSuggestions: readonly LinkSuggestion[],
+	numberButtonLayout: NumberButtonLayout,
+	displayName: string,
 ): CreatedControl {
 	if (fieldType === 'list') {
 		return createListControl(
@@ -214,6 +221,15 @@ function createControl(
 		);
 	}
 
+	if (fieldType === 'number') {
+		return createNumberControl(
+			fieldEl,
+			String(value),
+			numberButtonLayout,
+			displayName,
+		);
+	}
+
 	const input = fieldEl.createEl('input', {
 		cls: 'base-form-control',
 		attr: { autocomplete: 'off' },
@@ -232,11 +248,6 @@ function createControl(
 			input.step = '1';
 			input.value = String(value);
 			break;
-		case 'number':
-			input.type = 'number';
-			input.step = 'any';
-			input.value = String(value);
-			break;
 		case 'text':
 			input.type = 'text';
 			input.value = String(value);
@@ -251,6 +262,77 @@ function createControl(
 			? new LinkInputSuggest(app, input, sourcePath, undefined, linkSuggestions)
 			: null,
 	};
+}
+
+function createNumberControl(
+	fieldEl: HTMLElement,
+	value: string,
+	layout: NumberButtonLayout,
+	displayName: string,
+): CreatedControl {
+	const wrapper = fieldEl.createDiv({
+		cls: `base-form-number-control is-${layout}`,
+	});
+	const input = wrapper.createEl('input', {
+		cls: 'base-form-control',
+		attr: { autocomplete: 'off', type: 'number', step: 'any' },
+	});
+	input.value = value;
+
+	if (layout !== 'none') {
+		const decrementButton = createNumberButton(
+			wrapper,
+			input,
+			-1,
+			`Decrease ${displayName}`,
+			'−',
+		);
+		const incrementButton = createNumberButton(
+			wrapper,
+			input,
+			1,
+			`Increase ${displayName}`,
+			'+',
+		);
+		if (layout === 'left-right') {
+			wrapper.prepend(decrementButton);
+			wrapper.append(incrementButton);
+		} else {
+			const buttonsEl = wrapper.createDiv({
+				cls: 'base-form-number-buttons',
+			});
+			buttonsEl.append(incrementButton, decrementButton);
+		}
+	}
+
+	return {
+		control: input,
+		focusControl: input,
+		inputSuggest: null,
+	};
+}
+
+function createNumberButton(
+	parentEl: HTMLElement,
+	input: HTMLInputElement,
+	delta: -1 | 1,
+	ariaLabel: string,
+	text: string,
+): HTMLButtonElement {
+	const button = parentEl.createEl('button', {
+		cls: 'base-form-number-button',
+		text,
+	});
+	button.type = 'button';
+	button.ariaLabel = ariaLabel;
+	button.addEventListener('click', () => {
+		const currentValue = input.valueAsNumber;
+		input.value = String((Number.isFinite(currentValue) ? currentValue : 0) + delta);
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+		input.focus();
+	});
+	return button;
 }
 
 function createListControl(

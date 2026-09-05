@@ -7,6 +7,7 @@ const MANUAL_SUBMIT_KEY = 'manualSubmit';
 const SUBMIT_BUTTON_NAME_KEY = 'submitButtonName';
 const SUBMIT_BUTTON_POSITION_KEY = 'submitButtonPosition';
 const CONFIRM_LIST_ITEM_DELETION_KEY = 'confirmListItemDeletion';
+const NUMBER_BUTTON_LAYOUT_KEY = 'numberButtonLayout';
 const SHOW_ONLY_EMPTY_INPUTS_KEY = 'showOnlyEmptyInputs';
 const SHOW_ONLY_EXISTING_INPUTS_KEY = 'showOnlyExistingInputs';
 const ENABLE_DELETE_PROPERTY_BUTTON_KEY = 'enableDeletePropertyButton';
@@ -19,6 +20,8 @@ const MAX_ITEM_SPACING = 32;
 const MIN_FORM_WIDTH = 24;
 const MAX_FORM_WIDTH = 80;
 
+export type NumberButtonLayout = 'none' | 'left-right' | 'top-bottom';
+
 export interface FormViewSettings {
 	showFileName: boolean;
 	hideNonEmptyProperties: boolean;
@@ -26,6 +29,7 @@ export interface FormViewSettings {
 	manualSubmit: boolean;
 	submitButtonName: string;
 	confirmListItemDeletion: boolean;
+	numberButtonLayout: NumberButtonLayout;
 	submitButtonPosition:
 		| 'top'
 		| 'bottom'
@@ -46,6 +50,7 @@ export const DEFAULT_FORM_VIEW_SETTINGS: FormViewSettings = {
 	manualSubmit: false,
 	submitButtonName: 'Submit',
 	confirmListItemDeletion: false,
+	numberButtonLayout: 'none',
 	submitButtonPosition: 'bottom',
 	enableDeletePropertyButton: false,
 	visibilityConditionalPrefix: '',
@@ -73,6 +78,17 @@ export function getFormViewOptions(
 			type: 'group',
 			displayName: 'Data entry',
 			items: [
+				{
+					type: 'dropdown',
+					key: NUMBER_BUTTON_LAYOUT_KEY,
+					displayName: 'Number buttons',
+					default: DEFAULT_FORM_VIEW_SETTINGS.numberButtonLayout,
+					options: {
+						none: 'None',
+						'left-right': 'Left / right',
+						'top-bottom': 'Top / bottom',
+					},
+				},
 				{
 					type: 'toggle',
 					key: CONFIRM_LIST_ITEM_DELETION_KEY,
@@ -190,6 +206,7 @@ export function getFormViewSettings(
 	const manualSubmit = config.get(MANUAL_SUBMIT_KEY);
 	const submitButtonName = config.get(SUBMIT_BUTTON_NAME_KEY);
 	const confirmListItemDeletion = config.get(CONFIRM_LIST_ITEM_DELETION_KEY);
+	const numberButtonLayout = config.get(NUMBER_BUTTON_LAYOUT_KEY);
 	const submitButtonPosition = config.get(SUBMIT_BUTTON_POSITION_KEY);
 	const enableDeletePropertyButton =
 		config.get(ENABLE_DELETE_PROPERTY_BUTTON_KEY);
@@ -227,6 +244,12 @@ export function getFormViewSettings(
 			typeof confirmListItemDeletion === 'boolean'
 				? confirmListItemDeletion
 				: DEFAULT_FORM_VIEW_SETTINGS.confirmListItemDeletion,
+		numberButtonLayout:
+			numberButtonLayout === 'left-right' ||
+			numberButtonLayout === 'top-bottom' ||
+			numberButtonLayout === 'none'
+				? numberButtonLayout
+				: DEFAULT_FORM_VIEW_SETTINGS.numberButtonLayout,
 		submitButtonPosition:
 			submitButtonPosition === 'top' ||
 			submitButtonPosition === 'bottom' ||

@@ -39,6 +39,7 @@ views:
     formWidth: 80
     showOnlyEmptyInputs: false
     confirmListItemDeletion: true
+    numberButtonLayout: left-right
   - type: base-form
     name: Empty Properties Only
     groupBy:
@@ -104,13 +105,14 @@ views:
     visibilityConditionalPrefix: show-
     visibilityConditionalMode: show
     itemSpacing: 8
-    formWidth: 80
+    formWidth: 24
     showOnlyEmptyInputs: true
     hideNonEmptyProperties: false
     manualSubmit: false
     submitButtonName: Submit
     submitButtonPosition: bottom-each-note
     confirmListItemDeletion: true
+    numberButtonLayout: left-right
   - type: base-form
     name: This - Form
     filters:

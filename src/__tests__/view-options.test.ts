@@ -42,6 +42,7 @@ describe('form view settings', () => {
 				manualSubmit: true,
 				submitButtonName: 'Save form',
 				confirmListItemDeletion: true,
+				numberButtonLayout: 'top-bottom',
 				submitButtonPosition: 'top',
 				visibilityConditionalPrefix: 'show-',
 				visibilityConditionalMode: 'hide',
@@ -56,6 +57,7 @@ describe('form view settings', () => {
 			manualSubmit: true,
 			submitButtonName: 'Save form',
 			confirmListItemDeletion: true,
+			numberButtonLayout: 'top-bottom',
 			submitButtonPosition: 'top',
 			visibilityConditionalPrefix: 'show-',
 			visibilityConditionalMode: 'hide',
@@ -76,6 +78,33 @@ describe('form view settings', () => {
 			displayName: 'Confirm list item deletion',
 			default: false,
 		});
+	});
+
+	it('registers and reads number button layouts', () => {
+		const option = findOption(
+			getFormViewOptions({ get: () => undefined }),
+			'numberButtonLayout',
+		);
+
+		expect(option).toMatchObject({
+			type: 'dropdown',
+			displayName: 'Number buttons',
+			default: 'none',
+			options: {
+				none: 'None',
+				'left-right': 'Left / right',
+				'top-bottom': 'Top / bottom',
+			},
+		});
+		expect(readSettings({ numberButtonLayout: 'left-right' }).numberButtonLayout).toBe(
+			'left-right',
+		);
+		expect(readSettings({ numberButtonLayout: 'top-bottom' }).numberButtonLayout).toBe(
+			'top-bottom',
+		);
+		expect(readSettings({ numberButtonLayout: 'diagonal' }).numberButtonLayout).toBe(
+			'none',
+		);
 	});
 
 	it('registers conditional visibility options', () => {

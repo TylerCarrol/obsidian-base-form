@@ -180,6 +180,54 @@
 	width: 100%;
 }
 
+.base-form-number-control {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: stretch;
+	gap: var(--size-2-1);
+	min-width: 0;
+}
+
+.base-form-number-control input[type='number'] {
+	min-width: 0;
+	appearance: textfield;
+}
+
+.base-form-number-control input[type='number']::-webkit-inner-spin-button,
+.base-form-number-control input[type='number']::-webkit-outer-spin-button {
+	margin: 0;
+	appearance: none;
+}
+
+.base-form-number-button {
+	display: inline-flex;
+	flex: 0 0 var(--input-height);
+	align-items: center;
+	justify-content: center;
+	width: var(--input-height);
+	min-width: var(--input-height);
+	min-height: 0;
+	padding: 0;
+	font-size: var(--font-ui-medium);
+}
+
+.base-form-number-buttons {
+	display: flex;
+	flex: 0 0 var(--input-height);
+	flex-direction: column;
+	gap: 1px;
+	width: var(--input-height);
+}
+
+.base-form-number-buttons .base-form-number-button {
+	flex: 1 1 50%;
+	width: 100%;
+	min-width: 0;
+	height: calc((var(--input-height) - 1px) / 2);
+	font-size: var(--font-ui-smaller);
+	line-height: 1;
+}
+
 textarea.base-form-control {
 	min-height: 5rem;
 	resize: vertical;

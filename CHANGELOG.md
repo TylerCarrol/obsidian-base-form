@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add per-view conditional property and formula visibility using boolean note properties or formulas.
 - Add a per-view option to confirm before deleting items from lists.
+- Add a per-view option to show number decrement and increment buttons to the
+	left and right of the input or in a top and bottom stack.
 
 ### Changed
 
