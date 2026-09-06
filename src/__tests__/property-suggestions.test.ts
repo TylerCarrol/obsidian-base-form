@@ -4,7 +4,7 @@ import { collectListPropertyValues } from '../form/property-suggestions';
 describe('list property value collection', () => {
 	it('does not scan the vault when there are no list properties', () => {
 		const getMarkdownFiles = vi.fn(() => []);
-		const app = { metadataCache: {} } as never;
+		const app = { vault: { getMarkdownFiles }, metadataCache: {} } as never;
 
 		expect(collectListPropertyValues(app, [], [])).toEqual(new Map());
 		expect(getMarkdownFiles).not.toHaveBeenCalled();
@@ -30,6 +30,7 @@ describe('list property value collection', () => {
 			},
 		};
 		const app = {
+			vault: { getMarkdownFiles },
 			metadataCache: {
 				getFileCache: (file: { path: string }) => ({
 					frontmatter: frontmatterByPath[file.path],
@@ -38,15 +39,11 @@ describe('list property value collection', () => {
 		} as never;
 
 		const values = collectListPropertyValues(app, [
-			{ file: ada },
-			{ file: alan },
-			{ file: grace },
-		] as never, [
 			'related-notes',
 			'interests',
 		]);
 
-		expect(getMarkdownFiles).not.toHaveBeenCalled();
+		expect(getMarkdownFiles).toHaveBeenCalledOnce();
 		expect(values.get('related-notes')).toEqual([
 			'[[Grace Hopper]]',
 			'[[Ada Lovelace]]',

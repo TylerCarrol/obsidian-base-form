@@ -290,6 +290,18 @@ export function inferGroupPropertyLabel(
 	return bestScore > 0 ? bestProperty : bestProperty;
 }
 
+function setsEqual(left: ReadonlySet<string>, right: ReadonlySet<string>): boolean {
+	if (left.size !== right.size) {
+		return false;
+	}
+	for (const value of left) {
+		if (!right.has(value)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 export class BaseFormView extends BasesView {
 	readonly type = BASE_FORM_VIEW_TYPE;
 	private static nextInstanceId = 0;
@@ -297,6 +309,7 @@ export class BaseFormView extends BasesView {
 	private readonly drafts = new Map<string, FormControlValue>();
 	private readonly inputSuggestions: FormInputSuggest[] = [];
 	private listPropertyValues = new Map<string, readonly string[]>();
+	private listPropertyValueNames = new Set<string>();
 	private pendingFocus:
 		| {
 				filePath: string;
@@ -319,11 +332,18 @@ export class BaseFormView extends BasesView {
 		this.registerDomEvent(this.containerEl, 'input', this.handleInput);
 		this.registerDomEvent(this.containerEl, 'change', this.handleChange);
 		this.registerDomEvent(this.containerEl, 'click', this.handleClick);
+		this.registerEvent(
+			this.app.metadataCache.on('changed', () => {
+				this.listPropertyValues.clear();
+				this.listPropertyValueNames.clear();
+			}),
+		);
 	}
 
 	onunload(): void {
 		this.drafts.clear();
 		this.listPropertyValues.clear();
+		this.listPropertyValueNames.clear();
 		this.closeInputSuggestions();
 		this.containerEl.remove();
 	}
@@ -362,16 +382,22 @@ export class BaseFormView extends BasesView {
 
 		const properties = this.getVisibleProperties();
 		const fieldTypes = resolveFieldTypes(this.app, entries, properties);
-		this.listPropertyValues = collectListPropertyValues(
-			this.app,
-			entries,
-			properties.flatMap((propertyId) => {
-				const property = parsePropertyId(propertyId);
-				return property.type === 'note' && fieldTypes.get(propertyId) === 'list'
-					? [property.name]
-					: [];
-			}),
+		const listPropertyNames = properties.flatMap((propertyId) => {
+			const property = parsePropertyId(propertyId);
+			return property.type === 'note' && fieldTypes.get(propertyId) === 'list'
+				? [property.name]
+				: [];
+		});
+		const normalizedListPropertyNames = new Set(
+			listPropertyNames.map((name) => name.toLocaleLowerCase()),
 		);
+		if (!setsEqual(this.listPropertyValueNames, normalizedListPropertyNames)) {
+			this.listPropertyValues = collectListPropertyValues(
+				this.app,
+				listPropertyNames,
+			);
+			this.listPropertyValueNames = normalizedListPropertyNames;
+		}
 		const linkSuggestions: readonly LinkSuggestion[] = entries.map((entry) => ({
 			file: entry.file,
 			linkText: this.app.metadataCache.fileToLinktext(
