@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-06
+
 ### Changed
 
 - Restore list property suggestions from all Markdown files and cache them until metadata changes.
@@ -108,7 +110,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add per-view file name visibility, empty-input filtering, item spacing, and form width options.
 - Add a demo base and sample notes covering each supported property type.
 
-[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.8.1...HEAD
+
+[0.8.1]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.8.0...v0.8.1
 
 [0.8.0]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.7.0...v0.8.0
 
