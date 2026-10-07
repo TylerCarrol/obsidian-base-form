@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-10-07
+
 ### Changed
 
 - Show 50 forms per page by default to reduce work in large note collections.
@@ -128,7 +130,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add per-view file name visibility, empty-input filtering, item spacing, and form width options.
 - Add a demo base and sample notes covering each supported property type.
 
-[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.8.2...HEAD
+[Unreleased]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.8.3...HEAD
+
+[0.8.3]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.8.2...v0.8.3
 
 [0.8.2]: https://github.com/TylerCarrol/obsidian-base-form/compare/v0.8.1...v0.8.2
 
