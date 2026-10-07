@@ -48,6 +48,21 @@ BaseForm uses Obsidian's assigned property types when they are available. If an 
 
 BaseForm shows some values as read-only to prevent accidental data loss. This includes nested data, non-text lists, and date-and-time values with timezone suffixes.
 
+## Large collections
+
+BaseForm shows 50 notes per page by default. This limit reduces the number of form controls in large collections.
+The **Previous** and **Next** buttons keep the note order and groups from Bases.
+
+In the Form view settings, select **Notes per page** to use 25, 50, or 100 notes.
+To restore the previous layout, select **All notes (slower)**.
+
+Save changes before you change pages. With **Manual submit** enabled, select the submit button first.
+An invalid value or a failed save keeps your changes on the current page.
+
+List suggestions still include values from all Markdown notes in the vault.
+BaseForm loads these suggestions on first use, then updates only the changed note.
+Note-link suggestions still include all notes that match the view, not only the current page.
+
 ## Demo vault
 
 The repository includes `base-form-demo-vault`. It contains a configured base and sample notes for every supported property type. See [`base-form-demo-vault/README.md`](base-form-demo-vault/README.md) for the walkthrough.

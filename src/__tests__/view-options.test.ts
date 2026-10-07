@@ -64,7 +64,19 @@ describe('form view settings', () => {
 			itemSpacing: 12,
 			formWidth: 40,
 			enableDeletePropertyButton: true,
+			pageSize: 50,
 		});
+	});
+
+	it('registers and validates notes per page', () => {
+		expect(findOption(getFormViewOptions({ get: () => undefined }), 'pageSize'))
+			.toMatchObject({ type: 'dropdown', default: '50' });
+		for (const size of ['0', '25', '50', '100']) {
+			expect(readSettings({ pageSize: size }).pageSize).toBe(Number(size));
+		}
+		for (const size of [-1, 25, '1000', Infinity, null]) {
+			expect(readSettings({ pageSize: size }).pageSize).toBe(50);
+		}
 	});
 
 	it('registers list item deletion confirmation', () => {

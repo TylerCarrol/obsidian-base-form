@@ -38,6 +38,17 @@ class TestListInputSuggest extends ListInputSuggest {
 }
 
 describe('form input suggestions', () => {
+	it('loads link candidates only when suggestions are requested', () => {
+		const input = document.createElement('input');
+		const candidates = vi.fn(() => [
+			{ file: { basename: 'Remote page note', path: 'Remote page note.md' }, linkText: 'Remote page note' },
+		]);
+		const suggest = new TestLinkInputSuggest({} as never, input, '', undefined, candidates as never);
+		expect(candidates).not.toHaveBeenCalled();
+		expect(suggest.getMatches('Remote')).toHaveLength(1);
+		expect(candidates).toHaveBeenCalledOnce();
+	});
+
 	const grace = {
 		basename: 'Grace Hopper',
 		path: 'Demo notes/Grace Hopper.md',

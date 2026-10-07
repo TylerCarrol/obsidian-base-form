@@ -16,7 +16,7 @@ import {
 	LinkInputSuggest,
 	ListInputSuggest,
 } from './input-suggest';
-import type { FormInputSuggest, LinkSuggestion } from './input-suggest';
+import type { FormInputSuggest, LinkSuggestion, SuggestionSource } from './input-suggest';
 import type { NumberButtonLayout } from './view-options';
 
 export type FormControl = HTMLInputElement | HTMLTextAreaElement;
@@ -35,8 +35,8 @@ interface EditableFieldOptions {
 	fieldEl: HTMLElement;
 	fieldType: FormFieldType;
 	filePath: string;
-	listSuggestions?: readonly string[];
-	linkSuggestions?: readonly LinkSuggestion[];
+	listSuggestions?: SuggestionSource<string>;
+	linkSuggestions?: SuggestionSource<LinkSuggestion>;
 	numberButtonLayout?: NumberButtonLayout;
 	propertyName: string;
 	rawValue: unknown;
@@ -183,8 +183,8 @@ function createControl(
 	value: FormControlValue,
 	confirmListItemDeletion: boolean,
 	sourcePath: string,
-	listSuggestions: readonly string[],
-	linkSuggestions: readonly LinkSuggestion[],
+	listSuggestions: SuggestionSource<string>,
+	linkSuggestions: SuggestionSource<LinkSuggestion>,
 	numberButtonLayout: NumberButtonLayout,
 	displayName: string,
 ): CreatedControl {
@@ -341,7 +341,7 @@ function createListControl(
 	value: string,
 	confirmListItemDeletion: boolean,
 	sourcePath: string,
-	listSuggestions: readonly string[],
+	listSuggestions: SuggestionSource<string>,
 ): CreatedControl {
 	const hiddenValue = fieldEl.createEl('input', {
 		cls: 'base-form-control base-form-list-value',
@@ -506,7 +506,8 @@ function createListControl(
 		commitInput(true);
 	});
 	const inputSuggest = shouldEnableLinkSuggestions('list')
-		? new ListInputSuggest(app, input, () => listSuggestions, () => items, () => {
+		? new ListInputSuggest(app, input, () =>
+			typeof listSuggestions === 'function' ? listSuggestions() : listSuggestions, () => items, () => {
 			commitInput(false);
 		})
 		: null;

@@ -37,7 +37,8 @@ import {
 } from './property-types';
 import { getFormViewSettings } from './view-options';
 import type { FormViewSettings } from './view-options';
-import { collectListPropertyValues } from './property-suggestions';
+import { ListPropertySuggestions } from './property-suggestions';
+import { paginateFormGroups } from './form-pagination';
 
 export const BASE_FORM_VIEW_TYPE = 'base-form';
 
@@ -261,6 +262,18 @@ export function inferGroupPropertyLabel(
 	candidateProperties: string[],
 ): string {
 	const scores = new Map<string, number>();
+	const valueCounts = new Map<string, Map<string, number>>();
+	for (const property of candidateProperties) {
+		const counts = new Map<string, number>();
+		for (const entry of entries) {
+			const value = entry.getValue(property);
+			if (value !== undefined && value !== null) {
+				const text = stringifyUnknown(value);
+				counts.set(text, (counts.get(text) ?? 0) + 1);
+			}
+		}
+		valueCounts.set(property, counts);
+	}
 	for (const group of groups) {
 		if (group.hasKey !== undefined && !group.hasKey()) {
 			continue;
@@ -269,13 +282,10 @@ export function inferGroupPropertyLabel(
 		if (key === undefined || key === null) {
 			continue;
 		}
-		for (const entry of entries) {
-			for (const property of candidateProperties) {
-				const value = entry.getValue(property);
-				if (value !== undefined && value !== null && stringifyUnknown(value) === stringifyUnknown(key)) {
-					scores.set(property, (scores.get(property) ?? 0) + 1);
-				}
-			}
+		const keyText = stringifyUnknown(key);
+		for (const property of candidateProperties) {
+			scores.set(property, (scores.get(property) ?? 0) +
+				(valueCounts.get(property)?.get(keyText) ?? 0));
 		}
 	}
 	let bestProperty = candidateProperties[0] ?? 'Group';
@@ -290,26 +300,14 @@ export function inferGroupPropertyLabel(
 	return bestScore > 0 ? bestProperty : bestProperty;
 }
 
-function setsEqual(left: ReadonlySet<string>, right: ReadonlySet<string>): boolean {
-	if (left.size !== right.size) {
-		return false;
-	}
-	for (const value of left) {
-		if (!right.has(value)) {
-			return false;
-		}
-	}
-	return true;
-}
-
 export class BaseFormView extends BasesView {
 	readonly type = BASE_FORM_VIEW_TYPE;
 	private static nextInstanceId = 0;
 	private readonly containerEl: HTMLElement;
 	private readonly drafts = new Map<string, FormControlValue>();
 	private readonly inputSuggestions: FormInputSuggest[] = [];
-	private listPropertyValues = new Map<string, readonly string[]>();
-	private listPropertyValueNames = new Set<string>();
+	private readonly listPropertySuggestions: ListPropertySuggestions;
+	private page = 0;
 	private pendingFocus:
 		| {
 				filePath: string;
@@ -325,6 +323,7 @@ export class BaseFormView extends BasesView {
 	constructor(controller: QueryController, scrollEl: HTMLElement) {
 		super(controller);
 		this.instanceId = BaseFormView.nextInstanceId++;
+		this.listPropertySuggestions = new ListPropertySuggestions(this.app);
 		this.containerEl = scrollEl.createDiv({ cls: 'base-form-view' });
 	}
 
@@ -333,17 +332,25 @@ export class BaseFormView extends BasesView {
 		this.registerDomEvent(this.containerEl, 'change', this.handleChange);
 		this.registerDomEvent(this.containerEl, 'click', this.handleClick);
 		this.registerEvent(
-			this.app.metadataCache.on('changed', () => {
-				this.listPropertyValues.clear();
-				this.listPropertyValueNames.clear();
+			this.app.metadataCache.on('changed', (file) => {
+				this.listPropertySuggestions.update(file);
 			}),
 		);
+		this.registerEvent(this.app.vault.on('delete', (file) => {
+			this.listPropertySuggestions.remove(file.path);
+		}));
+		this.registerEvent(this.app.vault.on('rename', (file, oldPath) => {
+			this.listPropertySuggestions.remove(oldPath);
+			const renamedFile = this.app.vault.getFileByPath(file.path);
+			if (renamedFile !== null) {
+				this.listPropertySuggestions.update(renamedFile);
+			}
+		}));
 	}
 
 	onunload(): void {
 		this.drafts.clear();
-		this.listPropertyValues.clear();
-		this.listPropertyValueNames.clear();
+		this.listPropertySuggestions.clear();
 		this.closeInputSuggestions();
 		this.containerEl.remove();
 	}
@@ -382,34 +389,29 @@ export class BaseFormView extends BasesView {
 
 		const properties = this.getVisibleProperties();
 		const fieldTypes = resolveFieldTypes(this.app, entries, properties);
-		const listPropertyNames = properties.flatMap((propertyId) => {
+		this.listPropertySuggestions.setProperties(properties.flatMap((propertyId) => {
 			const property = parsePropertyId(propertyId);
 			return property.type === 'note' && fieldTypes.get(propertyId) === 'list'
-				? [property.name]
-				: [];
-		});
-		const normalizedListPropertyNames = new Set(
-			listPropertyNames.map((name) => name.toLocaleLowerCase()),
-		);
-		if (!setsEqual(this.listPropertyValueNames, normalizedListPropertyNames)) {
-			this.listPropertyValues = collectListPropertyValues(
-				this.app,
-				listPropertyNames,
-			);
-			this.listPropertyValueNames = normalizedListPropertyNames;
-		}
-		const linkSuggestions: readonly LinkSuggestion[] = entries.map((entry) => ({
-			file: entry.file,
-			linkText: this.app.metadataCache.fileToLinktext(
-				entry.file,
-				entry.file.path,
-				true,
-			),
+				? [property.name] : [];
 		}));
+		let cachedLinkSuggestions: readonly LinkSuggestion[] | undefined;
+		const linkSuggestions = (): readonly LinkSuggestion[] =>
+			cachedLinkSuggestions ??= entries.map((entry) => ({
+				file: entry.file,
+				linkText: this.app.metadataCache.fileToLinktext(
+					entry.file, entry.file.path, true,
+				),
+			}));
 		this.containerEl.createDiv({
 			cls: 'base-form-summary',
 			text: `${entries.length} ${entries.length === 1 ? 'note' : 'notes'}`,
 		});
+		const groups = this.data.groupedData.length > 0 ? this.data.groupedData : [{ entries, hasKey: () => false }];
+		const pagination = paginateFormGroups(groups, this.page, settings.pageSize);
+		this.page = pagination.page;
+		if (pagination.pageCount > 1) {
+			this.renderPagination(pagination.pageCount);
+		}
 		if (
 			settings.manualSubmit &&
 			(settings.submitButtonPosition === 'top' ||
@@ -419,11 +421,12 @@ export class BaseFormView extends BasesView {
 		}
 
 		const formsEl = this.containerEl.createDiv({ cls: 'base-form-entries' });
-		const groups = this.data.groupedData.length > 0 ? this.data.groupedData : [{ entries, hasKey: () => false }];
-		const groupPropertyLabel = this.getGroupPropertyLabel(groups, entries);
-		groups.forEach((group) => {
+		const isGrouped = groups.length > 1 || groups[0]?.hasKey?.() === true;
+		const groupPropertyLabel = isGrouped ? this.getGroupPropertyLabel(groups, entries) : '';
+		let entryIndex = pagination.start;
+		pagination.groups.forEach((group) => {
 			const groupEl = formsEl.createDiv({ cls: 'base-form-group' });
-			if (groups.length > 1 || group.hasKey?.()) {
+			if (isGrouped) {
 				const headerEl = groupEl.createDiv({ cls: 'base-form-group-header' });
 				const labelParts = getBaseFormGroupLabelParts(group, groupPropertyLabel);
 				headerEl.createSpan({ cls: 'base-form-group-label', text: labelParts.label });
@@ -442,11 +445,11 @@ export class BaseFormView extends BasesView {
 				}
 			}
 
-			group.entries.forEach((entry, entryIndex) => {
+			group.entries.forEach((entry) => {
 				this.renderEntry(
 					groupEl,
 					entry,
-					entryIndex,
+					entryIndex++,
 					properties,
 					fieldTypes,
 					settings.showFileName,
@@ -471,8 +474,26 @@ export class BaseFormView extends BasesView {
 		) {
 			this.renderSubmitButton(this.containerEl, settings.submitButtonName);
 		}
+		if (pagination.pageCount > 1) {
+			this.renderPagination(pagination.pageCount);
+		}
 
 		this.restorePendingFocus();
+	}
+
+	private renderPagination(pageCount: number): void {
+		const navigation = this.containerEl.createDiv({ cls: 'base-form-pagination' });
+		navigation.setAttribute('role', 'navigation');
+		navigation.setAttribute('aria-label', 'Form pages');
+		for (const [label, delta] of [['Previous', -1], ['Next', 1]] as const) {
+			const button = navigation.createEl('button', { text: label });
+			button.type = 'button';
+			button.disabled = delta < 0 ? this.page === 0 : this.page === pageCount - 1;
+			button.dataset.pageDelta = String(delta);
+			if (delta < 0) {
+				navigation.createSpan({ text: `Page ${this.page + 1} of ${pageCount}` });
+			}
+		}
 	}
 
 	private renderSubmitButton(
@@ -497,12 +518,13 @@ export class BaseFormView extends BasesView {
 		const candidateProperties = [
 			...this.data.properties,
 			...this.allProperties,
-		].filter((propertyId, index, array) => array.indexOf(propertyId) === index);
-		const inferred = inferGroupPropertyLabel(groups, entries, candidateProperties);
+		];
+		const uniqueProperties = [...new Set(candidateProperties)];
+		const inferred = inferGroupPropertyLabel(groups, entries, uniqueProperties);
 		if (inferred !== 'Group') {
 			return this.config.getDisplayName(inferred as BasesPropertyId);
 		}
-		for (const propertyId of candidateProperties) {
+		for (const propertyId of uniqueProperties) {
 			if (this.data.properties.includes(propertyId) || this.allProperties.includes(propertyId)) {
 				return this.config.getDisplayName(propertyId);
 			}
@@ -532,7 +554,7 @@ export class BaseFormView extends BasesView {
 		manualSubmit: boolean,
 		submitButtonName: string,
 		submitButtonPosition: FormViewSettings['submitButtonPosition'],
-		linkSuggestions: readonly LinkSuggestion[],
+		linkSuggestions: () => readonly LinkSuggestion[],
 	): void {
 		const cardEl = parentEl.createEl('article', { cls: 'base-form-entry' });
 		if (manualSubmit && submitButtonPosition === 'top-each-note') {
@@ -604,7 +626,7 @@ export class BaseFormView extends BasesView {
 		numberButtonLayout: FormViewSettings['numberButtonLayout'],
 		visibilityConditionalPrefix: string,
 		visibilityConditionalMode: FormViewSettings['visibilityConditionalMode'],
-		linkSuggestions: readonly LinkSuggestion[],
+		linkSuggestions: () => readonly LinkSuggestion[],
 	): void {
 		const property = parsePropertyId(propertyId);
 		const displayName = this.config.getDisplayName(propertyId);
@@ -685,8 +707,7 @@ export class BaseFormView extends BasesView {
 			filePath: entry.file.path,
 			propertyName: property.name,
 			rawValue,
-			listSuggestions:
-				this.listPropertyValues.get(property.name.toLocaleLowerCase()) ?? [],
+			listSuggestions: () => this.listPropertySuggestions.get(property.name),
 			linkSuggestions,
 			numberButtonLayout,
 			sourcePath: entry.file.path,
@@ -706,6 +727,20 @@ export class BaseFormView extends BasesView {
 
 	private readonly handleClick = (event: MouseEvent): void => {
 		const target = event.target as Element | null;
+		const pageButton = target?.closest<HTMLButtonElement>('button[data-page-delta]');
+		if (pageButton !== undefined && pageButton !== null) {
+			event.preventDefault();
+			if (this.drafts.size > 0) {
+				new Notice('Save changes before changing pages.');
+				return;
+			}
+			this.page += Number(pageButton.dataset.pageDelta);
+			this.pendingFocus = null;
+			this.render();
+			this.containerEl.parentElement?.scrollTo({ top: 0 });
+			this.containerEl.querySelector<HTMLElement>('.base-form-pagination button:not(:disabled)')?.focus();
+			return;
+		}
 		if (target?.closest('.base-form-submit') !== null) {
 			event.preventDefault();
 			return;

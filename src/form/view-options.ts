@@ -15,6 +15,7 @@ const VISIBILITY_CONDITIONAL_PREFIX_KEY = 'visibilityConditionalPrefix';
 const VISIBILITY_CONDITIONAL_MODE_KEY = 'visibilityConditionalMode';
 const ITEM_SPACING_KEY = 'itemSpacing';
 const FORM_WIDTH_KEY = 'formWidth';
+const PAGE_SIZE_KEY = 'pageSize';
 const MIN_ITEM_SPACING = 0;
 const MAX_ITEM_SPACING = 32;
 const MIN_FORM_WIDTH = 24;
@@ -41,6 +42,7 @@ export interface FormViewSettings {
 	visibilityConditionalMode: 'show' | 'hide';
 	itemSpacing: number;
 	formWidth: number;
+	pageSize: number;
 }
 
 export const DEFAULT_FORM_VIEW_SETTINGS: FormViewSettings = {
@@ -57,6 +59,7 @@ export const DEFAULT_FORM_VIEW_SETTINGS: FormViewSettings = {
 	visibilityConditionalMode: 'show',
 	itemSpacing: 8,
 	formWidth: 52,
+	pageSize: 50,
 };
 
 export function getFormViewOptions(
@@ -68,6 +71,18 @@ export function getFormViewOptions(
 		hideSubmitOptions() || !getFormViewSettings(config).manualSubmit;
 
 	return [
+		{
+			type: 'dropdown',
+			key: PAGE_SIZE_KEY,
+			displayName: 'Notes per page',
+			default: String(DEFAULT_FORM_VIEW_SETTINGS.pageSize),
+			options: {
+				'25': '25',
+				'50': '50',
+				'100': '100',
+				'0': 'All notes (slower)',
+			},
+		},
 		{
 			type: 'toggle',
 			key: SHOW_FILE_NAME_KEY,
@@ -218,8 +233,14 @@ export function getFormViewSettings(
 	);
 	const itemSpacing = config.get(ITEM_SPACING_KEY);
 	const formWidth = config.get(FORM_WIDTH_KEY);
+	const pageSize = config.get(PAGE_SIZE_KEY);
 
 	return {
+		pageSize:
+			pageSize === '0' || pageSize === '25' ||
+			pageSize === '50' || pageSize === '100'
+				? Number(pageSize)
+				: DEFAULT_FORM_VIEW_SETTINGS.pageSize,
 		showFileName:
 			typeof showFileName === 'boolean'
 				? showFileName

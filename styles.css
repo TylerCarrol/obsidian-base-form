@@ -13,6 +13,14 @@
 	font-size: var(--font-ui-small);
 }
 
+.base-form-pagination {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--size-4-3);
+	margin-block: var(--base-form-item-spacing);
+}
+
 .base-form-submit {
 	display: block;
 	margin-block-end: var(--base-form-item-spacing);

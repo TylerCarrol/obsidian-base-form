@@ -13,7 +13,7 @@ export default defineConfig(
 		'package.json',
 		'package-lock.json',
 		'base-form-demo-vault/**',
-		'tsconfig.json',
+		'**/tsconfig.json',
 		'vitest.config.ts',
 	]),
 	{
@@ -27,7 +27,6 @@ export default defineConfig(
 						'eslint.config.mts',
 						'manifest.json',
 						'scripts/generate-earth-map.mjs',
-						'src/__tests__/*.ts',
 					],
 				},
 				tsconfigRootDir: import.meta.dirname,

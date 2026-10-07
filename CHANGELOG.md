@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Show 50 forms per page by default to reduce work in large note collections.
+- Add a **Notes per page** setting with 25, 50, 100, and **All notes (slower)** choices.
+- Load suggestions on first use and update list suggestions only for changed notes.
+- Remove repeated property reads from group-label inference.
+
+### Fixed
+
+- Keep form control IDs unique across groups.
+- Protect unsaved changes during page navigation.
+
 ## [0.8.2] - 2026-09-10
 
 ### Fixed

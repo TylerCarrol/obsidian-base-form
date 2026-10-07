@@ -35,6 +35,17 @@ beforeAll(() => {
 });
 
 describe('base form grouping', () => {
+	it('reads each property once per entry with 1,500 distinct groups', () => {
+		const entries = Array.from({ length: 1500 }, (_, index) => ({
+			getValue: vi.fn((property: string) => property === 'note.id' ? index : 'Other'),
+		}));
+		const groups = entries.map((_, index) => ({ key: index, hasKey: () => true }));
+		expect(inferGroupPropertyLabel(groups, entries, ['note.other', 'note.id']))
+			.toBe('note.id');
+		expect(entries.reduce((sum, entry) => sum + entry.getValue.mock.calls.length, 0))
+			.toBe(3000);
+	});
+
 	it('renders a friendly label for empty groups', () => {
 		expect(
 			getBaseFormGroupLabel({

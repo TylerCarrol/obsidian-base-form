@@ -20,6 +20,11 @@ view uses the default compact spacing and visible file names. The embedded
 the view options. The main **Form** view also puts decrement and increment
 buttons on the left and right of number fields.
 
+The main **Form** view uses 50 notes per page. The three sample notes fit on one page.
+With more than 50 matching notes, the **Previous** and **Next** buttons appear.
+The **Notes per page** setting also supports 25, 100, and **All notes (slower)**.
+Save changes before you change pages.
+
 The **Conditional Show/Hide** view uses the `show-` prefix in Show mode. The
 `show-score` note property shows Ada's score, hides Alan's score, and leaves
 Grace's score visible because her controller is missing. The

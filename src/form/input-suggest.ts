@@ -12,6 +12,7 @@ interface LinkTrigger {
 	to: number;
 }
 
+export type SuggestionSource<T> = readonly T[] | (() => readonly T[]);
 type ListValueProvider = () => readonly string[];
 
 export type FormInputSuggest = LinkInputSuggest | ListInputSuggest;
@@ -22,7 +23,7 @@ export class LinkInputSuggest extends AbstractInputSuggest<LinkSuggestion> {
 		private readonly inputEl: HTMLInputElement,
 		private readonly sourcePath: string,
 		onSelect?: () => void,
-		private readonly candidates: readonly LinkSuggestion[] = [],
+		private readonly candidates: SuggestionSource<LinkSuggestion> = [],
 	) {
 		super(app, inputEl);
 		if (onSelect !== undefined) {
@@ -48,7 +49,10 @@ export class LinkInputSuggest extends AbstractInputSuggest<LinkSuggestion> {
 		}
 
 		const normalizedQuery = trigger.query.toLocaleLowerCase();
-		return this.candidates
+		const candidates = typeof this.candidates === 'function'
+			? this.candidates()
+			: this.candidates;
+		return candidates
 			.filter(({ file, linkText }) => {
 				if (normalizedQuery === '') {
 					return true;

@@ -114,7 +114,29 @@ export class ConfirmationModal {
 export class Plugin {}
 
 export class BasesView {
-	constructor(public controller?: unknown) {}
+	app: unknown;
+	private readonly cleanups: Array<() => void> = [];
+
+	constructor(public controller?: unknown) {
+		this.app = (controller as { app?: unknown } | undefined)?.app;
+	}
+
+	registerDomEvent(
+		element: HTMLElement,
+		type: string,
+		callback: EventListener,
+	): void {
+		element.addEventListener(type, callback);
+		this.cleanups.push(() => element.removeEventListener(type, callback));
+	}
+
+	registerEvent(_event: unknown): void {}
+
+	unload(): void {
+		for (const cleanup of this.cleanups) {
+			cleanup();
+		}
+	}
 }
 
 export class BooleanValue {
